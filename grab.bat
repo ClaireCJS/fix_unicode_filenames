@@ -1,1 +1,0 @@
-@update-from-BAT.bat %*
