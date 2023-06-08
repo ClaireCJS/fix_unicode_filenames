@@ -27,7 +27,7 @@ The idea is to reduce workflow tool breakage by purging special characters that 
 It can take "auto", "string", "file", and "test" as optional parameters.   
 
 
-To cleanse all file/folder names in your dir with Yes/No prompting:
+**To cleanse all file/folder names in your dir with Yes/No prompting:**
 
 * fix_unicode_filenames 	                
 
@@ -35,7 +35,7 @@ To cleanses all file/folder names in your dir automatically:
 
 * fix_unicode_filenames auto                    
 
-To convert a string mode (remove emoji/unicode) at the command line   
+**To convert a string mode (remove emoji/unicode) at the command line:**
 * fix_unicode_filenames string "😈🎉 💜😈"  
 
 To do the same, but in filename mode:
@@ -46,19 +46,6 @@ To Run internal testing suite / validation
     * fix_unicode_filenames test                    
 
 
-
-## Installation: Python
-
-
-GOOD LUCK. I had a hell of a time getting the libraries right for this. I think you'll have to remove polyglot support unless you can get that running. It's hard. And the unidecode library is difficult too. And if you ask the author about it, he just replies with a form letter "I'm sorry it didn't meet your needs" rather than maintaining his code. So good luck.
-
-In theory, though: install the appropriate packages:
-
-```bash
-pip install -r requirements.txt
-```
-
-In practice.... There are 2 wheel files for polyglot that you have to install in specific order. And python-romkan is hard to deal with too. So is unicode. Good luck.
 
 
 ## What does it fix as an example?
@@ -139,11 +126,26 @@ A lot was done. I mean a lot. A ton. But nothing formal.
 And then the code got corrupted due to the presence of unicode characters in it -- OH THE SWEET IRONY -- and a lot of stuff got redone with a quarter of the original effort :/
 
 
+## Installation: Python
+
+
+GOOD LUCK. I had a hell of a time getting the libraries right for this. I think you'll have to remove polyglot support unless you can get that running. It's hard. And the unidecode library is difficult too. And if you ask the author about it, he just replies with a form letter "I'm sorry it didn't meet your needs" rather than maintaining his code. So good luck.
+
+In theory, though: install the appropriate packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+In practice.... There are 2 wheel files for polyglot that you have to install in specific order. And python-romkan is hard to deal with too. So is unicode. Good luck.
+
+
+
 ## Those wacky BAT files?
 
 I use TCC -- Take Command Command Line.
 Technically, my .BAT files are .BTM files.
-They're really for me, but sometimes I include them in my repo since I want them version controlled, to.
+They're really for me, but sometimes I include them in my repo since I want them version controlled, too.
 
 ## License
 
