@@ -42,79 +42,74 @@ Many are simply instances of changing unicode hyphens and apostrophes to standar
 
 I made [a list of almost every unicode chracter ever]() to feed it through this.
 
-It turned [ALL OF THEM](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/testdata-generate-every-character-ever.out) into [ALL OF THESE](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/testdata-generate-every-character-ever.out.scrubbed.by.our.tool). (Warning, these may take a bit to load.)
+It turned:
+
+* [ALL OF THIS UNICODE](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/testdata-generate-every-character-ever.out)
+
+...into...
+
+* [ALL OF THESE ASCII](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/testdata-generate-every-character-ever.out.scrubbed.by.our.tool). 
+
+Notice how much quicker the 2nd/cleaned one loads, even though the file is 24.61X larger in size? 
+That's because we're avoiding all that unicode processing and rendering.
+That's the results we're looking for with this tool: Less overall hassle.
+
+
+## How do I use it as a standalone tool?
+
+It can take "auto", "string", "file", and "test" as optional parameters:   
+
+```    
+* fix_unicode_filenames 	                 Cleanses all file/folder names in your dir with Yes/No prompting
+* fix_unicode_filenames auto                     Cleanses all file/folder names in your dir automatically
+* fix_unicode_filenames string "test filename"   Test out string mode (remove emoji/unicode) on a string at the command line
+* fix_unicode_filenames file   "test filename"   Test out file   mode (remove   even   more) on a string at the command line
+* fix_unicode_filenames test                     Run internal testing suite / validation
+```
+
+## How do I use it as a programming module?
+
+```
+import fix_unicode_filenames
+a_cleaner_string_without_unicode_or_emoji = fix_unicode_filenames.convert_a_string  (original_string___with_unicode_and_emoji, silent_if_unchanged=True)
+a_safer_filename_without_unicode_or_emoji = fix_unicode_filenames.convert_a_filename(original_filename_with_unicode_and_emoji, silent_if_unchanged=True)     
+
+You can pass: 
+
+    * silent_if_unchanged=True to make it shut up about all the changes it did NOT make, which is generally going to be the default in this situation
+    * silent=True              to make it shut up about all the changes it DID     make, which really depends on your preferences for  your situation
+
+
+## How does this work under the hood?
+
+1. First, our custom/manually-created mapping library is used.  This was hand-made with some amount of care.
+
+2. Then, emoji characters are de-emojied
+
+3. Then, it uses the Polyglot library to attempt a language-agnostic all-languages translation, which can almost always fail. [It might be hard for someone else to get this part working.]
+
+4. Then, Arabic, Bengali, and and Hindi characters are passed through a phonetically mapping table so they can sort of be pronounced.
+
+5. Then, Thai, Japanese, Chinese, and Korean characters are run through 4 conversion libraries specific to those languages. [It might be hard for someone else to get all of these working.]
+
+6. Then Unicode chracters are run through the unidecode library to convert them. ........... But this library is not well maintained and often gives no result. Thus, our custom mapping table. 
+
+7. If nothing is found, an exception is thrown, explaining to add the character to the mapping table. Possibly necessary as new emojis come out.
 
 
 
+## Internal mapping table format:
 
-
-
-
-    USAGE:
-
-        SETUP: To suppress user prompting: set AUTOMATIC_UNICODE_CLEANING=1
-
-        MODE 1:  No      arguments  : Run with no arguments to cleanse everything in your existing folder of unicode characters
-              :  "auto"  argum
-              ent   : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Do this, but suppress confirmation prompts
-        MODE 2: "file   <arguments>": Use "file"   as your first argument to cleanse the rest of the command line of unicode, as if it were a windows filename
-        MODE 3: "string <arguments>": Use "string" as your first argument to cleanse the rest of the command line of unicode, without restricting to only-valid-in-windows-fiklenames
-        MODE 4: "test"              : to convert the internal testing string
-
-    PROGRAMMATIC USAGE:
-        import fixUnicodeFilenames
-        a_string_without_unicode = fixUnicodeFilenames.convert_a_string  (original_stringval_with_unicode)
-        filename_without_unicode = fixUnicodeFilenames.convert_a_filename(original_file_name_with_unicode,silent_if_unchanged=True)     #silent_if_unchanged=True suppresses output if nothing changes
-         #silent=suppresses all output no matter what
-
-
-
-    Uses Polyglot library to attempt a language-agnostic translation, which can easliy fail
-    Then several internal custom mapping tables for phonetically romanizing characters & emojis
-    Then several lingual libraries for romanizing individual characters for some "weirder alphabet" languages
-    Then an emoji library for converting unconverted emojis
-
-
-
-
-
-
-    (1) First, an amazing multi-language language-agnostic full translation library called polyglot is used
-        to interpret the entire filename/string at a high ("smart") level to see if a language is detected,
-        and then to make language-specific conversions to our ASCII/roman equivalent characters.
-
-        But it throws an exception if a specific language is not detected, and it's also hard to install,
-        so the entire thing is wrapped around an exception that just throws the original text if anything goes wrong.
-
-        Also, polyglot will omit characters sometimes, so we do not want a null string
-
-    (2) Then, each character is processed at a per-chracter level, checking its unicode range to see if it's a language,
-        and then passing through either a language library or a phoenetic mapping table, to translate the chracters
-        back to ASCII/roman.
-
-
-def translate_thai_____to_ascii(text): return ThaiRomanize(text)                                                # Thai
-def translate_japanese_to_ascii(char): return romkan.to_roma(char)                                              # Japanese
-def translate_korean___to_ascii(text): return KoreanRomanizer(text).romanize()                                  # Korean
-def translate_chinese__to_ascii(char): return ''.join(lazy_pinyin(char, style=PypinyinStyle.TONE3))             # Chinese
-def translate_bengali__to_ascii(text): return ''.join(bengali_to_english_phonetic.get(c, '_') for c in text)    # Bengali  (no library used)
-def translate_arabic___to_ascii(text): return ''.join( arabic_to_english_phonetic.get(c, '_') for c in text)    # Arabic   (no library used)
-def translate_hindi____to_ascii(text): return ''.join(  hindi_to_english_phonetic.get(c, '_') for c in text)    # Hindi    (no library used)
-
+Lines are either in this format for when the alternative is valid for filenames:
 
     '∑' :   'E=',   #quite the stretch, maybe "sigma" would be better
     '∫' :   'S=',   #quite the stretch, maybe "sum"   would be better
 
-    "🎉":      ["{party popper}",],
-    '\ue0069':["i"],                #Latin Small Letter I
-    '\uE005A':["Z"],                #Latin Capital Letter Z
-    '\ue006c':["l"],                #Latin Small Letter L
+Or this format, for when we have a good string mode alternative which would NOT work as a filename (most emoticons are not valid filenames due to the eyes being represented with colons):
 
-
-
-
-
-
+    "😖": [">.<", "{confounded face}"],
+    "😕": [":/" , "{confused face}"  ],
+    "😢": [")':", "{crying face}"    ],
 
 
 ## Installation: Python
