@@ -11,8 +11,8 @@ It can be used in two ways:
 
 * Standalone mode: Run in a folder to clean it.  
                    Will prompt user for each change unless set to automatic mode.
-*     Module mode: Incorporate into other program. 
-                   Use it to cleanse strings, particularly for filenames
+* Module mode: Incorporate into other program. 
+               Use it to cleanse strings, particularly for filenames
 
 
 ## What does it fix, generally?
