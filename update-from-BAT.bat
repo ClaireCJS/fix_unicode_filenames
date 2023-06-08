@@ -6,7 +6,7 @@ REM     local GIT repo beore doing anything significant.  Or really, before doin
 
 
 rem CONFIGURATION:
-        SET MANIFEST_FILES=fix_unicode_filenames.py
+        SET MANIFEST_FILES=fix_unicode_filenames.py fix_unicode_filenames_every_char.py
 
 
 

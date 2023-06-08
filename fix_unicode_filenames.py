@@ -91,8 +91,6 @@
 
 
 
-
-
 #pylint: disable=C0103,C0413,W0719,R1726
 import os
 os.system("")                                                               #necessary bugfix, believe it or not #GOAT but let's try taking it out to challenge ourselves and maybe speedup startup time
@@ -104,6 +102,7 @@ import builtins
 import unicodedata
 from unidecode import unidecode
 from colorama import Fore, Back, Style, just_fix_windows_console
+import fix_unicode_filenames_every_char as everychar
 just_fix_windows_console()
 #init()
 
@@ -165,6 +164,8 @@ HAND="ðŸ‘‹",WORLD="ðŸŒ" âµâ„“ COPYRIGHT="Â©",RESTRICT="Â�
 ð‘¨ð’ƒð’„ð’…ð’†ð’‡ð’ˆð’‰ð’Šð’‹ð’Œð’ð’Žð’ð’ð’‘ð’’ð’“ð’”ð’•ð’–ð’—ð’˜ð’™ð’šð’› ð‘¨ð‘©ð‘ªð‘«ð‘¬ð‘­ð‘®ð‘¯ð‘°ð‘±ð‘²ð‘³ð‘´ð‘µð‘¶ð‘·ð‘¸ð‘¹ð‘ºð‘»ð‘¼ð‘½ð‘¾ð‘¿ð’€ð’
 ×Ö¸×œÖ¶×£ Ø¨ÙÙŠØª Ç„Ç…Ç†Ç‡ÇˆÇ‰ÇŠÇ‹ÇŒ á»’á»£á»”á»™ á»–á»—á»˜á»™ á»©á»¤á»±á»¦á»­ á»¨á»¯ á»ªá»­á»¬á»« á»®á»­ á»°á»±
 """
+
+
 #####################################################################################
 
 
@@ -237,6 +238,7 @@ def polyglot_language_agnostic_romanize(text):
 
 
 def get_unicode_hex(character):
+    if character == "": return "0"                                                                      #just fill in a dummy value
     return "\\u" + hex(ord(character))[2:].zfill(4)                                                     #thank you ChatGPT
 
 
@@ -320,6 +322,7 @@ def is_emoji_character(char):
     for start, end in emoji_ranges:
         if start <= char <= end: return True
     return False
+is_emoji = is_emoji_character
 
 def is_unicode_character(char):
     """Checks if a character is a valid Unicode character."""
@@ -418,10 +421,11 @@ def translate_character_with_language_libraries(char,mode,filename="not given"):
 
             if unicodedata_decode not in ["", char, translate_return_value]:           #assign new character if it's actually a new character
                 translate_return_value = unicodedata_decode
-            else:
+            else:                                                                      #fairly unreachable code but comment out the if part and this can be a fun way to find un-manually-mapped characters to add more pleasant/customized mapping
                 message = f"{Fore.RED}{Style.BRIGHT}\n!!! FATAL DECODE ERROR: COULD NOT DECODE UNICODE CHARACTER OF {char} (unicode hex={hex}) !!!\nFilename = {filename}\nPlease add to custom mapping table at the bottom of fixUnicodeFilenames.py\nYou may need to copy and paste this character into google to find out what it actually is:\n%EDITOR% {sys.argv[0]}{Fore.WHITE}{Style.NORMAL}"
                 if DIE_ON_UNDECODEABLE_UNICODE_CHARACTER: raise Exception(message)
                 primt(message)
+            translate_return_value = "{" + translate_return_value + "}"
         else:
             translate_return_value = unidecodeChar
 
@@ -441,11 +445,14 @@ from pythainlp.transliterate    import romanize           as ThaiRomanize       
 
 def translate_thai_____to_ascii(text): return ThaiRomanize(text)                                                # Thai
 def translate_japanese_to_ascii(char): return romkan.to_roma(char)                                              # Japanese
-def translate_korean___to_ascii(text): return KoreanRomanizer(text).romanize()                                  # Korean
 def translate_chinese__to_ascii(char): return ''.join(lazy_pinyin(char, style=PypinyinStyle.TONE3))             # Chinese
 def translate_bengali__to_ascii(text): return ''.join(bengali_to_english_phonetic.get(c, '_') for c in text)    # Bengali  (no library used)
 def translate_arabic___to_ascii(text): return ''.join( arabic_to_english_phonetic.get(c, '_') for c in text)    # Arabic   (no library used)
 def translate_hindi____to_ascii(text): return ''.join(  hindi_to_english_phonetic.get(c, '_') for c in text)    # Hindi    (no library used)
+def translate_korean___to_ascii(text):                                                                          # Korean
+    try:    retval = KoreanRomanizer(text).romanize()
+    except: retval = text
+    return  retval
 def translate_emoji_to_ascii(char):
     demojized = emoji.demojize(char)
     if demojized.startswith(':') and demojized.endswith(':'): return '{' + demojized[1:-1] + '}'
@@ -579,7 +586,7 @@ def internal_mapping_table_integrity_test_check_for_invalid_filename_chars():
             if fileValue != "":
                 #DEBUG: if DEBUG_INTERNAL_TESTING: primt(f"\t- File value found: '{fileValue}'")
                 if any(char in fileValue for char in INVALID_WINDOWS_FILENAME_CHARACTERS):
-                    primt(f"\t{Fore.RED}{Style.BRIGHT}- stringValue={stringValue} in fileValue={Back.LIGHTBLACK_EX}{fileValue}{Back.BLACK} in dictionary d={d}, entry e={e}, contains invalid character! Cannot contain any character from INVALID_WINDOWS_FILENAME_CHARACTERS={Fore.YELLOW}{INVALID_WINDOWS_FILENAME_CHARACTERS}\n{Fore.YELLOW}{Style.NORMAL}This means you need to edit your code so that the first value in the value array is a valid windows filename. I.E. in our dictionary of Character:[translation1,translation2], the translation1 provided of '{fileValue}' has invalid windows filename characters in it (i.e. one of the following characters:{Fore.RED}{INVALID_WINDOWS_FILENAME_CHARACTERS}{Fore.YELLOW}) and must be changed in the source code!\n{Style.BRIGHT}Basically, copy and paste this: {Back.LIGHTBLACK_EX}{fileValue}{Back.BLACK} (the part with the weird grey background), search for that in the source code, and make it not include any of these red characters: {Fore.RED}{INVALID_WINDOWS_FILENAME_CHARACTERS}{Fore.YELLOW}")  #pylint: disable=C0301
+                    primt(f"\t{Fore.RED}{Style.BRIGHT}- stringValue={stringValue} in fileValue={Back.LIGHTBLACK_EX}{fileValue}{Back.BLACK} in dictionary d={d}, entry e={e}, contains invalid character! Cannot contain any character from INVALID_WINDOWS_FILENAME_CHARACTERS={Fore.YELLOW}{INVALID_WINDOWS_FILENAME_CHARACTERS}\n{Fore.YELLOW}{Style.NORMAL}This means you need to edit your code so that the first value in the value array is a valid windows filename. I.E. in our dictionary of Character:[translation1,translation2], the translation1 provided of '{fileValue}' has invalid windows filename characters in it (i.e. one of the following characters:{Fore.RED}{INVALID_WINDOWS_FILENAME_CHARACTERS}{Fore.YELLOW}) and must be changed in the source code!\n{Style.BRIGHT}Basically, copy and paste this: {Back.LIGHTBLACK_EX}{fileValue}{Back.BLACK} (the part with the weird grey background), search for that in the source code, and make it not include any of these red characters: {Fore.RED}{INVALID_WINDOWS_FILENAME_CHARACTERS}{Fore.YELLOW}\n{Fore.RED}\tkey='{key}',value='{value}'")  #pylint: disable=C0301
                     anyFailed = True
     if anyFailed: sys.exit(6666)
 
@@ -647,7 +654,7 @@ def main():
         rename_files_in_current_directory(mode="file",automatic_mode=mode_is_automatic)       #MODE 1: Fix all files in the current folder, in filename mode
         sys.exit(0)
     elif mode_name == 'test':                                                                 #MODE 4: Prepare to translate internal testing string
-        string_to_process = get_testing_string()
+        string_to_process = get_testing_string() + "\n\n\n TESTING STRING #2: \n\n\n" + everychar.ALMOST_EVERY_CHARACTER
     else:
         string_to_process = " ".join(sys.argv[2:])                                            #MODES 2 & 3: Prepare to translate our command-line string
 
@@ -796,18 +803,18 @@ unicode_to_ascii_custom_character_mapping = {
 
     # Emojis with ASCII equivalents: faces:
     "😝": ["XP", "XP"],       # {squinting face with tongue}
-    "😤": [">:(", "]-("],      # {steam from nose}
-    "😛": [":p", "dp"],       # {sticking out tongue}
+    "😤": [">:(", "{face with steam from nose}"],      # {steam from nose}
+    "😛": [":p", "{sticking out tongue}"],       # {sticking out tongue}
     "😊": [":)", "=)"],       # {smiling face with smiling_eyes}
-    "😏": [";)", "^)"],       # {smirking_face}
+    "😏": [";)", "{smirking}"],       # {smirking_face}
     "😓": ["^_^;", "{downcast face with sweat},"],     # {sweat face aka downcast_face_with_sweat}
     "😂": ["XD", "XD"],       # {tears of joy face}
-    "😫": [":/", "=I"],       # {tired_face}
-    "😒": [":/", "=I"],       # {unamused_face}
-    "😩": ["):", ")_"],       # {weary_face}
-    "😜": [";p", "^p"],       # {winking face with tongue}
-    "😟": ["/:", "_:"],       # {worried_face}
-    "😉": [";)", "^)"],       # {winking_face} (with tongue)
+    "😫": [":/", "{tired face}"],       # {tired_face}
+    "😒": [":/", "{unamused face}"],       # {unamused_face}
+    "😩": ["):", "{weary face}"],       # {weary_face}
+    "😜": [";p", "{winking face with tongue}"],       # {winking face with tongue}
+    "😟": ["/:", "{worried face}"],       # {worried_face}
+    "😉": [";)", ";)"],       # {winking_face} (with tongue)
 
 
 
@@ -935,10 +942,10 @@ unicode_to_ascii_custom_character_mapping = {
     '〛':   ']]',   #   unicode double right bracket
     '〘':   '[[',   #   unicode double left  bracket
     '〙':   ']]',   #   unicode double right bracket
-    '《' :   '<<',   #   unicode double     less-than
-    '》' :   '>>',   #   unicode double  greater-than
-    '᚛' :    '>-',  #   ??
-    '᚜' :    '-<',  #   ??
+    '《' :   ['<<','[['],   #   unicode double     less-than
+    '》' :   ['>>',']]'],   #   unicode double  greater-than
+    '᚛' :   ['>-',')-'],
+    '᚜' :   ['-<','-('],
 
     'π' :   'Pi',   #decent
 
@@ -986,7 +993,7 @@ unicode_to_ascii_custom_character_mapping = {
     'ₜ'	:   '(t)', 	#Latin Subscript Small Letter T     [doesn't render in EditPlus right so i'm not positive this is it]
 
 
-    '༼ ༽':  '/\\' ,   #a fairly good approximation
+    '༼ ༽':  ['/\\','{upside down v thingy}'] ,   #a fairly good approximation until you need valid filename chars
 
     '∞' :'[Inf]',   #tempted to make "8", but that would lose too much meaning
 
@@ -1000,8 +1007,9 @@ unicode_to_ascii_custom_character_mapping = {
     '∑' :   'E=',   #quite the stretch, maybe "sigma" would be better
     '∫' :   'S=',   #quite the stretch, maybe "sum"   would be better
 
-    '༺':    '@:',  #a huge stretch, this barely even looks like that
-    '༻':    ':@',  #a huge stretch, this barely even looks like that
+    #let's just take these out and let them be processed normally
+    #'༺':    ['@:'],  #a huge stretch, this barely even looks like that
+    #'༻':    [':@'],  #a huge stretch, this barely even looks like that
 
 
     # Emojis with ASCII equivalents: faces:

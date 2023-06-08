@@ -3,10 +3,12 @@
 fix_unicode_filenames is a filename fixer that removes all emoji, all unicode, and many other special/incovenient characters from filenames
 
 It cleanses in two modes:
+
 	* String mode: Cleanse all emoji/unicode characters 
 	* Filename mode: Additionally cleanse all invalid/problematic file characters
 
 It can be used in two ways:
+
 	* Standalone mode. Run in a folder to cleanse the files in a folder.  It will prompt for each file rename unless you pass "auto" as a parameter.
 	* Incorporate into other program. Use it to cleanse strings in your programs, especially if you're creating new files and want safe filenames.
 

@@ -4,14 +4,14 @@ import py2exe
 
 
 setup(
-    name='fixUnicodeFilenames',
+    name='fix_unicode_filenames',
     author="Claire",
     description="ascii filename fixer",
     version='0.2',
     packages=find_packages(include=['polyglot', 'python_romkan', 'tzdata']),
     entry_points={
         'console_scripts': [
-            'fixUnicodeFilenames = fixUnicodeFilenames:main',
+            'fix_unicode_filenames = fix_unicode_filenames:main',
         ],
     },
     options={
@@ -20,7 +20,7 @@ setup(
             'compressed': True,
         }
     },
-    console=['fixUnicodeFilenames.py'],
+    console=['fix_unicode_filenames.py'],
     #windows=['your_main_script.py'],
     zipfile=None,
 )
