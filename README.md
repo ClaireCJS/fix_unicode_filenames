@@ -79,8 +79,8 @@ a_safer_filename_without_unicode_or_emoji = fix_unicode_filenames.convert_a_file
 
 You can pass: 
 
-    * silent_if_unchanged=True to make it shut up about all the changes it did NOT make, which is generally going to be the default in this situation
-    * silent=True              to make it shut up about all the changes it DID     make, which really depends on your preferences for  your situation
+* silent_if_unchanged=True to make it shut up about all the changes it did NOT make, which is generally going to be the default in this situation
+* silent=True              to make it shut up about all the changes it DID     make, which really depends on your preferences for  your situation
 
 
 ## How does this work under the hood?
