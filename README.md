@@ -5,12 +5,14 @@ fix_unicode_filenames is a filename fixer that removes all emoji, all unicode, a
 It cleanses in two modes:
 
 	*   String mode: Cleanse all emoji/unicode characters 
-	* Filename mode: Additionally cleanse all invalid/problematic file characters
+	* Filename mode: *Also* cleanse invalid/problematic file characters
 
 It can be used in two ways:
 
-	* Standalone mode. Run in a folder to cleanse the files in a folder.  It will prompt for each file rename unless you pass "auto" as a parameter.
-	*     Module mode: Incorporate into other program. Use it to cleanse strings, particularly for filenames
+	* Standalone mode: Run in a folder to clean it.  
+	                   Will prompt user for each change unless set to automatic mode.
+	*     Module mode: Incorporate into other program. 
+	                   Use it to cleanse strings, particularly for filenames
 
 
 ## What does it fix, generally?
@@ -73,6 +75,7 @@ It can take "auto", "string", "file", and "test" as optional parameters:
 import fix_unicode_filenames
 a_cleaner_string_without_unicode_or_emoji = fix_unicode_filenames.convert_a_string  (original_string___with_unicode_and_emoji, silent_if_unchanged=True)
 a_safer_filename_without_unicode_or_emoji = fix_unicode_filenames.convert_a_filename(original_filename_with_unicode_and_emoji, silent_if_unchanged=True)     
+```
 
 You can pass: 
 
@@ -82,19 +85,19 @@ You can pass:
 
 ## How does this work under the hood?
 
-1. First, our custom/manually-created mapping library is used.  This was hand-made with some amount of care.
+First, our custom/manually-created mapping library is used.  This was hand-made with some amount of care.
 
-2. Then, emoji characters are de-emojied
+Then, emoji characters are de-emojied
 
-3. Then, it uses the Polyglot library to attempt a language-agnostic all-languages translation, which can almost always fail. [It might be hard for someone else to get this part working.]
+Then, it uses the Polyglot library to attempt a language-agnostic all-languages translation, which can almost always fail. [It might be hard for someone else to get this part working.]
 
-4. Then, Arabic, Bengali, and and Hindi characters are passed through a phonetically mapping table so they can sort of be pronounced.
+Then, Arabic, Bengali, and and Hindi characters are passed through a phonetically mapping table so they can sort of be pronounced.
 
-5. Then, Thai, Japanese, Chinese, and Korean characters are run through 4 conversion libraries specific to those languages. [It might be hard for someone else to get all of these working.]
+Then, Thai, Japanese, Chinese, and Korean characters are run through 4 conversion libraries specific to those languages. [It might be hard for someone else to get all of these working.]
 
-6. Then Unicode chracters are run through the unidecode library to convert them. ........... But this library is not well maintained and often gives no result. Thus, our custom mapping table. 
+Then Unicode chracters are run through the unidecode library to convert them. ........... But this library is not well maintained and often gives no result. Thus, our custom mapping table. 
 
-7. If nothing is found, an exception is thrown, explaining to add the character to the mapping table. Possibly necessary as new emojis come out.
+If nothing is found, an exception is thrown, explaining to add the character to the mapping table. Possibly necessary as new emojis come out.
 
 
 
