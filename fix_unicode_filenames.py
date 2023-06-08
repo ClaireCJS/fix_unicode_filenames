@@ -95,12 +95,14 @@
 
 #pylint: disable=C0103,C0413,W0719,R1726
 import os
-#os.system("")                                                                          #necessary bugfix, believe it or not #GOAT but let's try taking it out to challenge ourselves and maybe speedup startup time
-os.environ['PYTHAINLP_ZONEINFO_PACKAGE'] = 'tzdata'                                     #necessary bugfix, believe it or not
-import sys ; sys.setrecursionlimit(sys.getrecursionlimit() * 5)                         #recursionlimit came up during EXE-build attempts
+os.system("")                                                               #necessary bugfix, believe it or not #GOAT but let's try taking it out to challenge ourselves and maybe speedup startup time
+os.environ['PYTHAINLP_ZONEINFO_PACKAGE'] = 'tzdata'                         #necessary bugfix, believe it or not
+import sys ; sys.setrecursionlimit(sys.getrecursionlimit() * 5)             #recursionlimit came up during EXE-build attempts
 import msvcrt
-import unidecode                                                                        #pip install Unidecode==1.2.0 - for the right one - capitalizing the U (or not) is (or isn't) important. this package sucks.
+import builtins
+#import unidecode                                                           #pip install Unidecode==1.2.0 - for the right one - capitalizing the U (or not) is (or isn't) important. this package sucks.
 import unicodedata
+from unidecode import unidecode
 from colorama import Fore, Back, Style, just_fix_windows_console
 just_fix_windows_console()
 #init()
@@ -168,6 +170,27 @@ HAND="ðŸ‘‹",WORLD="ðŸŒ" âµâ„“ COPYRIGHT="Â©",RESTRICT="Â�
 
 
 
+def print_error(*args, called_from_primt=False, **kwargs):                                                                                                             #pylint: disable=W0613
+    if not called_from_primt: raise Exception("A print statement was used in the code. Use primt instead, because we want everything to go to our logfile")            #pylint: disable=W0719
+
+
+def primt(*args, **kwargs):     #custom_print "prim print" function to print, prim and proper, to screen & logfile at the same time
+    global LOGFILE
+
+    new_args = []
+    for arg in args:
+        if isinstance(arg, str):
+            new_arg = unidecode(arg)
+            new_args.append(new_arg)
+        else:
+            new_args.append(arg)
+    output = " ".join(map(str, new_args))
+
+    original_print(output, **kwargs)                                    # Call the original print function that we saved before
+    with open("fix-unicode-filenames.log", "a", encoding='utf-8') as log_file:
+        #log_file.write(f"{strip_ansi_codes(output)}\n")
+        log_file.write(f"{output}\n")
+
 
 def convert_to_ascii_filename_chracters(filename,mode):
     """Translates a string (in our case, a filename) to its ASCII/roman equivalent
@@ -188,7 +211,8 @@ def convert_to_ascii_filename_chracters(filename,mode):
     """
     global DEBUG, DEBUG_POLYGLOT
     string_romanized_with_polyglot = polyglot_language_agnostic_romanize(filename)
-    if DEBUG_POLYGLOT: print(f'DEBUG: string_romanized_with_polyglot({filename}) is "{string_romanized_with_polyglot}"')
+    if DEBUG_POLYGLOT:
+        primt(f'DEBUG: string_romanized_with_polyglot({filename}) is "{string_romanized_with_polyglot}"')
     return ''.join(translate_character_with_language_libraries(char,mode,filename=filename) for char in string_romanized_with_polyglot)
 
 
@@ -202,7 +226,7 @@ def polyglot_language_agnostic_romanize(text):
         from polyglot.detect import Detector
         from polyglot.transliteration import Transliterator
         detector = Detector(text)
-        if DEBUG_LANG_DETECT: print(f"* Detector: {str(detector)}")
+        if DEBUG_LANG_DETECT: primt(f"* Detector: {str(detector)}")
         source_lang = detector.language.code
         transliterator = Transliterator(source_lang=source_lang, target_lang="en")
         return transliterator.transliterate(text)
@@ -227,7 +251,7 @@ def translate_one_or_more_chars_with_custom_character_mapping(chars, mode):     
     # Check valid mode
     valid_modes = ['string', 'file']
     if mode not in valid_modes:
-        print(f"{Fore.RED}FATAL TRANSLATE ERROR: translate_one_or_more_chars_with_custom_character_mapping called with invalid mode of {mode} which is not in {valid_modes}")
+        primt(f"{Fore.RED}FATAL TRANSLATE ERROR: translate_one_or_more_chars_with_custom_character_mapping called with invalid mode of {mode} which is not in {valid_modes}")
         sys.exit(666)
 
     translated_chars = []
@@ -239,20 +263,20 @@ def translate_one_or_more_chars_with_custom_character_mapping(chars, mode):     
         if DEBUG_UNIDECODECHAR_TRANSLATECHAR:
             code  =     get_unicode_hex(char)
             code2 = "code " + str(get_unicode_hex(char)).replace("\\","")
-            print(f"\t{Fore.CYAN}translate_one_or_more_chars_with_custom_character_mapping(char={char},code={code},code2={code2})",end="")
+            primt(f"\t{Fore.CYAN}translate_one_or_more_chars_with_custom_character_mapping(char={char},code={code},code2={code2})",end="")
 
 
         if char in unicode_to_ascii_custom_character_mapping:   #if it's not found now, it's really not found
             mapping = unicode_to_ascii_custom_character_mapping[char]
-            if DEBUG_UNIDECODECHAR_TRANSLATECHAR: print(f"{Fore.GREEN}    Found in mapping!",end="")
+            if DEBUG_UNIDECODECHAR_TRANSLATECHAR: primt(f"{Fore.GREEN}    Found in mapping!",end="")
         else:
-            if DEBUG_UNIDECODECHAR_TRANSLATECHAR: print(f"{Fore.RED}Not found in mapping!",end="")
+            if DEBUG_UNIDECODECHAR_TRANSLATECHAR: primt(f"{Fore.RED}Not found in mapping!",end="")
             code2 = "code " + str(get_unicode_hex(char)).replace("\\","")
             if code2 in unicode_to_ascii_custom_character_mapping:
-                if DEBUG_UNIDECODECHAR_TRANSLATECHAR: print(f"{Fore.GREEN}{Style.BRIGHT}Found by 2nd-attempt code lookup!{Style.NORMAL}",end="")
+                if DEBUG_UNIDECODECHAR_TRANSLATECHAR: primt(f"{Fore.GREEN}{Style.BRIGHT}Found by 2nd-attempt code lookup!{Style.NORMAL}",end="")
                 mapping = unicode_to_ascii_custom_character_mapping[code2]
             else:
-                if DEBUG_UNIDECODECHAR_TRANSLATECHAR: print(f"{Style.BRIGHT}(Twice!)(code2={code2}){Style.NORMAL}",end="")
+                if DEBUG_UNIDECODECHAR_TRANSLATECHAR: primt(f"{Style.BRIGHT}(Twice!)(code2={code2}){Style.NORMAL}",end="")
                 translated_chars.append(char)
                 continue
 
@@ -333,20 +357,20 @@ def translate_character_with_language_libraries(char,mode,filename="not given"):
     """
     global DEBUG, DEBUG_CHAR, DEBUG_UNIDECODECHAR, DIE_ON_UNDECODEABLE_UNICODE_CHARACTER
 
-    char_for_print = char.encode('utf-16', 'surrogatepass').decode('utf-16','ignore')
+    char_for_primt = char.encode('utf-16', 'surrogatepass').decode('utf-16','ignore')
 
     if DEBUG_CHAR:
         try:
-            print (f"- DEBUG: char is {Fore.YELLOW}{char}{Fore.WHITE}\tvalue {Fore.YELLOW}{get_unicode_hex(char)}{Fore.WHITE}{Style.NORMAL}",end="")
+            primt (f"- DEBUG: char is {Fore.YELLOW}{char}{Fore.WHITE}\tvalue {Fore.YELLOW}{get_unicode_hex(char)}{Fore.WHITE}{Style.NORMAL}",end="")
         except Exception:                                                                                   #pylint: disable=W0718
-            print (f"- DEBUG: char is {Fore.YELLOW}{char_for_print}{Fore.WHITE}\tvalue {Fore.YELLOW}{get_unicode_hex(char)}{Fore.WHITE}{Style.NORMAL}",end="")
+            primt (f"- DEBUG: char is {Fore.YELLOW}{char_for_primt}{Fore.WHITE}\tvalue {Fore.YELLOW}{get_unicode_hex(char)}{Fore.WHITE}{Style.NORMAL}",end="")
 
 
     # First we check our custom mapping, our highest priority. It is hand-created and thought out.
     char, done = translate_one_or_more_chars_with_custom_character_mapping(char,mode)
-    if DEBUG_CHAR: print (f" \t... custom mapping: {Fore.YELLOW}{char}{Fore.WHITE}\tdone={done:1}",end="")
+    if DEBUG_CHAR: primt (f" \t... custom mapping: {Fore.YELLOW}{char}{Fore.WHITE}\tdone={done:1}",end="")
     if done:
-        if DEBUG_CHAR: print("")
+        if DEBUG_CHAR: primt("")
         return char
 
     # if a character is still untranslated, then we check our various lingual libraries and phoenetic mapping tables:
@@ -367,7 +391,7 @@ def translate_character_with_language_libraries(char,mode,filename="not given"):
             translate_return_value = demojified
         else:
             caught, is_emoji = False, False
-        if DEBUG_UNIDECODECHAR: print(f" | is_emomji?={is_emoji_character(char):1} | caight?={caught} | {char} {Style.BRIGHT}de-{Style.NORMAL}emojied is '{Fore.YELLOW}{demojified}'{Fore.WHITE} | translate_return_value={translate_return_value}",end="")
+        if DEBUG_UNIDECODECHAR: primt(f" | is_emomji?={is_emoji_character(char):1} | caight?={caught} | {char} {Style.BRIGHT}de-{Style.NORMAL}emojied is '{Fore.YELLOW}{demojified}'{Fore.WHITE} | translate_return_value={translate_return_value}",end="")
 
     # if a character is even still untranlated, we need to use our catch-all code
     # this library purports to fix things all kinds of things like: Spanish n-with-tilde will become an N,
@@ -381,15 +405,14 @@ def translate_character_with_language_libraries(char,mode,filename="not given"):
         translate_return_value = char
     else:
         if caught: char = translate_return_value
-        unidecodeChar = unidecode.unidecode(char)
+        unidecodeChar = unidecode(char)
         if DEBUG_UNIDECODECHAR:
             if unidecodeChar == '':  style_adjustment = f"{Fore.RED}"
             else:                    style_adjustment = f"{Fore.WHITE}"
-            print(f" | emoji?={is_emoji:1} | unicode?={is_unicode:1} | {char}\t{style_adjustment}uni{Style.BRIGHT}de{style_adjustment}{Style.NORMAL}coded is '{Fore.YELLOW}{unidecodeChar}{style_adjustment}'{Fore.WHITE}",end="")
+            primt(f" | emoji?={is_emoji:1} | unicode?={is_unicode:1} | {char}\t{style_adjustment}uni{Style.BRIGHT}de{style_adjustment}{Style.NORMAL}coded is '{Fore.YELLOW}{unidecodeChar}{style_adjustment}'{Fore.WHITE}",end="")
         if unidecodeChar == "":
             translate_return_value = char
 
-            import unicodedata                          #make one last attempt
             hex = get_unicode_hex(char)
             unicodedata_decode = get_name_from_hex(hex)
 
@@ -398,11 +421,11 @@ def translate_character_with_language_libraries(char,mode,filename="not given"):
             else:
                 message = f"{Fore.RED}{Style.BRIGHT}\n!!! FATAL DECODE ERROR: COULD NOT DECODE UNICODE CHARACTER OF {char} (unicode hex={hex}) !!!\nFilename = {filename}\nPlease add to custom mapping table at the bottom of fixUnicodeFilenames.py\nYou may need to copy and paste this character into google to find out what it actually is:\n%EDITOR% {sys.argv[0]}{Fore.WHITE}{Style.NORMAL}"
                 if DIE_ON_UNDECODEABLE_UNICODE_CHARACTER: raise Exception(message)
-                print(message)
+                primt(message)
         else:
             translate_return_value = unidecodeChar
 
-    if DEBUG_CHAR or DEBUG_UNIDECODECHAR: print("")
+    if DEBUG_CHAR or DEBUG_UNIDECODECHAR: primt("")
 
     #If we are in file mode, we need to make one more pass because the previous code could have turned it into something bad due to a bug:
     #First we check our custom mapping, our highest priority. It is hand-created and thought out.
@@ -441,18 +464,18 @@ def get_name_from_hex(unicode_hex):
 
 def ask_permission(old_name, new_name):
     """Asks the user for permission to rename a file."""
-    print(f"\n{Fore.YELLOW}{Style.BRIGHT}***** Rename:"                                                                   +
+    primt(f"\n{Fore.YELLOW}{Style.BRIGHT}***** Rename:"                                                                   +
           f"\n{Fore.RED   }{Style.BRIGHT}From: {Style.NORMAL}{old_name}{Fore.CYAN}{Style.NORMAL}"                         +
           f"\n{Fore.GREEN }{Style.BRIGHT}  To: {Style.NORMAL}{new_name}{Fore.CYAN}{Style.NORMAL} "                        +
           f"\n{Fore.YELLOW}{Style.BRIGHT}***** Rename?"                                                                   +
           f" { Fore.BLUE  }{Style.BRIGHT}[{Fore.CYAN}Y{Fore.BLUE}/{Style.NORMAL}{Fore.CYAN}n{Style.BRIGHT}]{Style.NORMAL} ", end="")
     clear_keyboard_buffer()
     response = msvcrt.getch().decode().lower().strip()
-    print(Style.BRIGHT, end="")
+    primt(Style.BRIGHT, end="")
     if response.lower() in ['y', 'yes', '']:
-        print(f"{Fore.GREEN}Yes!", end="")
+        primt(f"{Fore.GREEN}Yes!", end="")
         return True
-    print(f"{Fore.RED}No!", end="")
+    primt(f"{Fore.RED}No!", end="")
     return False
 
 def clear_keyboard_buffer():
@@ -469,8 +492,8 @@ def rename_files_in_current_directory(mode="file",automatic_mode=False):        
     permission     = False
     directory      = sys.argv[1] if len(sys.argv) > 1 else '.'                  #get all the files in the current dir...
     for filename in os.listdir(directory):
-        filename_for_print = filename.encode('utf-8','ignore')
-        if DEBUG_ANNOUNCE_FILENAMES: print(f"{Fore.CYAN}{Style.BRIGHT}* Processing file {filename}...{Style.NORMAL}{Fore.WHITE}")
+        filename_for_primt = filename.encode('utf-8','ignore')
+        if DEBUG_ANNOUNCE_FILENAMES: primt(f"{Fore.CYAN}{Style.BRIGHT}* Processing file {filename}...{Style.NORMAL}{Fore.WHITE}")
         new_name = convert_to_ascii_filename_chracters(filename,mode)           #this is where all the magic happens
 
         if filename != new_name:
@@ -491,13 +514,13 @@ def rename_files_in_current_directory(mode="file",automatic_mode=False):        
 
             if do_it_for_real: os.rename(old_file, last_minute_filename_cleanser(new_file))
 
-            print("\n")
-            if automatic: print(f"\t{Fore.YELLOW} Automatic Run: ")
-            if DRY_RUN:   print(f"\t{Fore.YELLOW}" +  "Dry Run: ")
-            print(f"{Fore.GREEN}{Style.NORMAL}\t{action_string}:\t{Fore.LIGHTBLACK_EX}{old_file} " +
+            primt("\n")
+            if automatic: primt(f"\t{Fore.YELLOW} Automatic Run: ")
+            if DRY_RUN:   primt(f"\t{Fore.YELLOW}" +  "Dry Run: ")
+            primt(f"{Fore.GREEN}{Style.NORMAL}\t{action_string}:\t{Fore.LIGHTBLACK_EX}{old_file} " +
                   f"{Fore.CYAN}\n\t\t    to:\t{Fore.GREEN}{new_file}{Style.NORMAL}\n\n\n")
     if not any_files_found_to_rename_at_all:
-        print(f"{Fore.RED}No files with unicode characters found.{Style.RESET_ALL}")
+        primt(f"{Fore.RED}No files with unicode characters found.{Style.RESET_ALL}")
 
 
 ## Public calls:
@@ -511,23 +534,23 @@ def just_convert_a_string(string_to_convert,mode,silent_if_unchanged=False,silen
     if mode == "test":
         run_internal_tests()
         for temp_mode in ["file", "string"]:
-            print (f"\n\n{Fore.YELLOW}{Style.BRIGHT}* Testing in mode {temp_mode}:{Style.NORMAL}\n")
-            print ("Test result: " + just_convert_a_string(string_to_convert,temp_mode))
+            primt (f"\n\n{Fore.YELLOW}{Style.BRIGHT}* Testing in mode {temp_mode}:{Style.NORMAL}\n")
+            primt ("Test result: " + just_convert_a_string(string_to_convert,temp_mode))
         return ":)"
 
     romanized_string  = convert_to_ascii_filename_chracters(string_to_convert,mode)     #...which we then fix the same way we would fix our filenames
     if silent or (silent_if_unchanged and string_to_convert == romanized_string):
-        pass #don't print
+        pass #don't primt
     else:
-        print(f"{Fore.RED}Old string: {string_to_convert}")
-        print(f"{Fore.GREEN}New string: {romanized_string }")
+        primt(f"{Fore.RED}Old string: {string_to_convert}")
+        primt(f"{Fore.GREEN}New string: {romanized_string }")
     return romanized_string
 
 
 def run_internal_tests():
-    print (f"{Fore.GREEN}{Style.BRIGHT}\nRunning internal mapping table integrity test for valid filename characters...{Style.NORMAL}")
+    primt (f"{Fore.GREEN}{Style.BRIGHT}\nRunning internal mapping table integrity test for valid filename characters...{Style.NORMAL}")
     internal_mapping_table_integrity_test_check_for_invalid_filename_chars()
-    print (f"{Fore.GREEN}{Style.BRIGHT}Passed!{Style.NORMAL}")
+    primt (f"{Fore.GREEN}{Style.BRIGHT}Passed!{Style.NORMAL}")
 
 def internal_mapping_table_integrity_test_check_for_invalid_filename_chars():
     #NEW LANGUAGES might get added here
@@ -543,7 +566,7 @@ def internal_mapping_table_integrity_test_check_for_invalid_filename_chars():
     t = 0
     for dictionary_name, dictionary in dictionaries.items():
         d += 1
-        print(f"{Fore.GREEN}{Style.BRIGHT}- Testing dictionary #{d}: {dictionary_name}")
+        primt(f"{Fore.GREEN}{Style.BRIGHT}- Testing dictionary #{d}: {dictionary_name}")
         e = 0
         for key, value in dictionary.items():
             e += 1
@@ -552,11 +575,11 @@ def internal_mapping_table_integrity_test_check_for_invalid_filename_chars():
             fileValue   = ""
             if len(value) > 1: fileValue = value[1]
             else             : fileValue = value[0] if value else stringValue
-            if DEBUG_INTERNAL_TESTING: print(f"{Fore.GREEN}{Style.NORMAL}- Testing entry #{t}: Dict #{d}, entry#{e}: [key={key},value={value}] [strVal={stringValue},fileVal={fileValue}]")
+            if DEBUG_INTERNAL_TESTING: primt(f"{Fore.GREEN}{Style.NORMAL}- Testing entry #{t}: Dict #{d}, entry#{e}: [key={key},value={value}] [strVal={stringValue},fileVal={fileValue}]")
             if fileValue != "":
-                #DEBUG: if DEBUG_INTERNAL_TESTING: print(f"\t- File value found: '{fileValue}'")
+                #DEBUG: if DEBUG_INTERNAL_TESTING: primt(f"\t- File value found: '{fileValue}'")
                 if any(char in fileValue for char in INVALID_WINDOWS_FILENAME_CHARACTERS):
-                    print(f"\t{Fore.RED}{Style.BRIGHT}- stringValue={stringValue} in fileValue={Back.LIGHTBLACK_EX}{fileValue}{Back.BLACK} in dictionary d={d}, entry e={e}, contains invalid character! Cannot contain any character from INVALID_WINDOWS_FILENAME_CHARACTERS={Fore.YELLOW}{INVALID_WINDOWS_FILENAME_CHARACTERS}\n{Fore.YELLOW}{Style.NORMAL}This means you need to edit your code so that the first value in the value array is a valid windows filename. I.E. in our dictionary of Character:[translation1,translation2], the translation1 provided of '{fileValue}' has invalid windows filename characters in it (i.e. one of the following characters:{Fore.RED}{INVALID_WINDOWS_FILENAME_CHARACTERS}{Fore.YELLOW}) and must be changed in the source code!\n{Style.BRIGHT}Basically, copy and paste this: {Back.LIGHTBLACK_EX}{fileValue}{Back.BLACK} (the part with the weird grey background), search for that in the source code, and make it not include any of these red characters: {Fore.RED}{INVALID_WINDOWS_FILENAME_CHARACTERS}{Fore.YELLOW}")  #pylint: disable=C0301
+                    primt(f"\t{Fore.RED}{Style.BRIGHT}- stringValue={stringValue} in fileValue={Back.LIGHTBLACK_EX}{fileValue}{Back.BLACK} in dictionary d={d}, entry e={e}, contains invalid character! Cannot contain any character from INVALID_WINDOWS_FILENAME_CHARACTERS={Fore.YELLOW}{INVALID_WINDOWS_FILENAME_CHARACTERS}\n{Fore.YELLOW}{Style.NORMAL}This means you need to edit your code so that the first value in the value array is a valid windows filename. I.E. in our dictionary of Character:[translation1,translation2], the translation1 provided of '{fileValue}' has invalid windows filename characters in it (i.e. one of the following characters:{Fore.RED}{INVALID_WINDOWS_FILENAME_CHARACTERS}{Fore.YELLOW}) and must be changed in the source code!\n{Style.BRIGHT}Basically, copy and paste this: {Back.LIGHTBLACK_EX}{fileValue}{Back.BLACK} (the part with the weird grey background), search for that in the source code, and make it not include any of these red characters: {Fore.RED}{INVALID_WINDOWS_FILENAME_CHARACTERS}{Fore.YELLOW}")  #pylint: disable=C0301
                     anyFailed = True
     if anyFailed: sys.exit(6666)
 
@@ -585,7 +608,7 @@ def get_mode(always_use_automatic_mode=False):
     AUTOMATIC_MODE = False
 
     return_value = 'unknown'
-    if DEBUG_MODE_ARGV: print (f"sys.argv is {sys.argv}")
+    if DEBUG_MODE_ARGV: primt (f"sys.argv is {sys.argv}")
     if len(sys.argv) > 1:                                                       #if first option is 'auto', set automatic_mode and pop that option off
         arg1 = sys.argv[1].lower()
         if arg1 in ['auto', 'automatic']:
@@ -604,15 +627,15 @@ def get_mode(always_use_automatic_mode=False):
         elif arg1 in ['filename'  , 'file'  ]: return_value = 'file'
         elif arg1 in ['testing'   , 'test'  ]:
             if len(sys.argv) > 2:
-                print (f'\n{Fore.RED}ERROR: Mode of {Style.BRIGHT}"test"{Style.NORMAL} cannot accept any other parameters as it uses an internal testing string. ')
+                primt (f'\n{Fore.RED}ERROR: Mode of {Style.BRIGHT}"test"{Style.NORMAL} cannot accept any other parameters as it uses an internal testing string. ')
                 sys.exit(666)
             return_value = 'test'
         else:
             valid_modes = ["string", "file", "test"]
-            print (f'\n{Fore.RED}ERROR: Mode of {Style.BRIGHT}"{arg1}"{Style.NORMAL} is not a valid mode from the possible valid modes of: {valid_modes}. ')
+            primt (f'\n{Fore.RED}ERROR: Mode of {Style.BRIGHT}"{arg1}"{Style.NORMAL} is not a valid mode from the possible valid modes of: {valid_modes}. ')
             sys.exit(666)
 
-    if DEBUG_MODE_ARGV: print (f"{Fore.BLUE}* Running in {return_value} mode with arguments {sys.argv}.\n\tAUTOMATIC_MODE is {AUTOMATIC_MODE}")
+    if DEBUG_MODE_ARGV: primt (f"{Fore.BLUE}* Running in {return_value} mode with arguments {sys.argv}.\n\tAUTOMATIC_MODE is {AUTOMATIC_MODE}")
     return return_value, AUTOMATIC_MODE
 
 
@@ -630,7 +653,7 @@ def main():
 
     just_convert_a_string(string_to_process,mode_name)                                        #MODES 2 - 4: Run the proper translation
 
-    if mode_name == 'test': print(f"{Style.BRIGHT}{Fore.GREEN}\n...Seems like all tests passed if we got this far!")
+    if mode_name == 'test': primt(f"{Style.BRIGHT}{Fore.GREEN}\n...Seems like all tests passed if we got this far!")
 
 
 
@@ -682,7 +705,8 @@ unicode_to_ascii_custom_character_mapping = {
     '\\':   ['\\/','--' ],  # ASCII backslash
     '<' :   ['<'  , '(' ],  # ASCII    less-than
     '>' :   ['>'  , ')' ],  # ASCII greater-than
-    '"' :   ['"'  , "''" ],  # ASCII quote          #converting to 2 apostrophes because of a theory of certain long filenames not being parseable if too many apostrophes and an odd number of apostrophes
+    '"' :   ['"'  , "''" ], # ASCII quote          #converting to 2 apostrophes because of a theory of certain long filenames not being parseable if too many apostrophes and an odd number of apostrophes
+    '^' :   ['-'],          # controversial, but this messes up Claire's personal TCC situation too much. If you want to allow carets in filenames, comment this line out.
 
     ## ones that look like the above but aren't, and are actually valid but we just don't like:
     '！':   '!' ,  # unicode exclamation mark
@@ -710,13 +734,13 @@ unicode_to_ascii_custom_character_mapping = {
     "😧": [":|", "TT"],    # anguished face
     "😠": ["):<", "]-["],   # angry face
     "😲": [":O", "O_O"],    # astonished face
-    "😁": ["^_^"],          # beaming face with smiling eyes
-    "😖": [">.<", "><"],    # confounded face
+    "😁": ["^_^", "{beaming face with smiley eyes}"],          # beaming face with smiling eyes
+    "😖": [">.<", "{confounded face}"],    # confounded face
     "😕": [":/", "TT"],    # confused face
     "😢": [")':", "TT"],   # crying face
     "😭": [")':", "TT"],   # loudly crying face
     "😓": ["^^;", "^^'"],   # downcast face with sweat
-    "😈": [">;)", "^_^"],   # devil smiling
+    "😈": [">;)", "{devil smiling}"],   # devil smiling
     "😞": ["):", "]-["],    # disappointed face
     "😑": ["-_-"],          # expressionless face
     "😮": [":o", "O_O"],    # face with open mouth
@@ -728,7 +752,7 @@ unicode_to_ascii_custom_character_mapping = {
     "😀": [":)", "=)"],     # grinning face
     "😃": [":D", "=D"],     # grinning face with big eyes
     "😄": ["XD"],           # grinning face with smiling eyes
-    "😅": ["^_^'"],         # grinning face with sweat
+    "😅": ["^_^'","{grinning face with sweat}"],         # grinning face with sweat
     "😆": ["X'D", "XD"],    # grinning squinting face
     "😇": ["O:)", "O)"],   # halo face
     "😯": [":o", "O_O"],    # hushed face
@@ -776,7 +800,7 @@ unicode_to_ascii_custom_character_mapping = {
     "😛": [":p", "dp"],       # {sticking out tongue}
     "😊": [":)", "=)"],       # {smiling face with smiling_eyes}
     "😏": [";)", "^)"],       # {smirking_face}
-    "😓": ["^_^;", "^_^,"],     # {sweat face aka downcast_face_with_sweat}
+    "😓": ["^_^;", "{downcast face with sweat},"],     # {sweat face aka downcast_face_with_sweat}
     "😂": ["XD", "XD"],       # {tears of joy face}
     "😫": [":/", "=I"],       # {tired_face}
     "😒": [":/", "=I"],       # {unamused_face}
@@ -985,7 +1009,7 @@ unicode_to_ascii_custom_character_mapping = {
     "ðŸ˜§": [":|", "D8"],    # anguished face
     "ðŸ˜ ": ["):<", "x_x"],   # angry face
     "ðŸ˜²": [":O", "O_O"],    # astonished face
-    "ðŸ˜": ["^_^"],          # beaming face with smiling eyes
+    "ðŸ˜": ["^_^","{beaming face with smiling eyes}"],          # beaming face with smiling eyes
     "ðŸ˜–": ["o_O"],          # confounded face
     "ðŸ˜•": ["o_O"],          # confused face
     "ðŸ˜¢": [")':", ";_;"],   # crying face
@@ -1003,7 +1027,7 @@ unicode_to_ascii_custom_character_mapping = {
     "ðŸ˜€": [":)", "=)"],     # grinning face
     "ðŸ˜ƒ": [":D", "=D"],     # grinning face with big eyes
     "ðŸ˜„": ["XD"],           # grinning face with smiling eyes
-    "ðŸ˜…": ["^_^'"],         # grinning face with sweat
+    "ðŸ˜…": ["^_^'","{grinning face with sweat}"],         # grinning face with sweat
     "ðŸ˜†": ["X'D", "X'D"],   # grinning squinting face
     "ðŸ˜‡": ["O:)", "O8)"],   # halo face
     "ðŸ˜¯": [":o", "8o"],    # hushed face
@@ -1012,13 +1036,13 @@ unicode_to_ascii_custom_character_mapping = {
     "ðŸ˜™": [":*", "8)xoxo"],    # kissing face with smiling eyes
     "ðŸ˜š": ["XOXO"],         # kissing face with closed eyes
     "ðŸ˜”": ["):", ")8"],    # pensive face
-    "ðŸ˜£": [">.<", "^_^'"],    # persevering face
+    "ðŸ˜£": [">.<", "{persevering face}"],    # persevering face
     "ðŸ˜¡": ["):", ")8"],   # pouting face
     "ðŸ˜¥": [")':", ")8"],   # sad but relieved face
     "ðŸ˜±": [":O", "O_O"],    # screaming in fear
     "ðŸ˜ª": ["X|", "zzz"],    # sleepy face
     "ðŸ™‚": [":)", "=)"],     # slightly smiling face
-    "ðŸ˜": ["<3_<3", "^_^3"],  # smiling face with heart eyes
+    "ðŸ˜": ["<3_<3", "{smiling face with heat eyes}"],  # smiling face with heart eyes
     "ðŸ˜Ž": ["B-)", "B)"],    # smiling face with sunglasses
     "ðŸ˜": ["X'P", "X'P"],       # {squinting face with tongue}
     "ðŸ˜›": [":p", "8p"],       # {sticking out tongue}
@@ -1317,6 +1341,10 @@ unicode_to_ascii_custom_character_mapping = {
 
 
 if __name__ == "__main__":
+    #we do this only in main because otherwise it affects loading modules
+    original_print = print                                      # Store the original print function before overriding
+    builtins.print = print_error                                # Override the built-in print function with the custom one
+
     main()
 
 

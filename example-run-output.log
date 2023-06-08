@@ -1,3 +1,19 @@
+
+NOTE: The actual output has ANSI color, but that is removed here.
+
+
+======================================= EMOJI EXAMPLE ============================================================
+
+
+	 Automatic Run: 
+	  Auto-Renamed:	.\Princess Di 👑 .jpg
+		    to:	.\Princess Di CROWN.jpg
+
+
+
+====================================== UNICODE EXAMPLE ===========================================================
+
+
 ***** Rename:
 From: Ashley O – On a Roll _ Official Music Video-BTsW30Ur0sg.mp4
   To: Ashley O - On a Roll _ Official Music Video-BTsW30Ur0sg.mp4
@@ -209,7 +225,7 @@ From: Sun Ra ＂Pink Elephants On Parade＂ [alX1jAxEtEc].webm
 
 ***** Rename:
 From: Tank — Cowboy Bebop OP 『Piano』-0PbvbJySeSY.webm
-  To: Tank -- Cowboy Bebop OP FPianoJ-0PbvbJySeSY.webm
+  To: Tank -- Cowboy Bebop OP [Piano]-0PbvbJySeSY.webm
 ***** Rename? [Y/n] Yes!
 
                Renamed: .\Tank — Cowboy Bebop OP 『Piano』-0PbvbJySeSY.webm
@@ -248,13 +264,3 @@ From: Tiamat  - A Deeper Kind of Slumber (Sub. Español) - Interestellar-TKyiGmu
                Renamed: .\Tiamat  - A Deeper Kind of Slumber (Sub. Español) - Interestellar-TKyiGmuYUOs.mkv
                     to: .\Tiamat  - A Deeper Kind of Slumber (Sub. Espanol) - Interestellar-TKyiGmuYUOs.mkv
 
-
-
-
-***** Rename:
-From: Tiamat - Do you dream of me (Sub. Español) Inception-kgL2pz1QOrk.mkv
-  To: Tiamat - Do you dream of me (Sub. Espanol) Inception-kgL2pz1QOrk.mkv
-***** Rename? [Y/n] Yes!
-
-               Renamed: .\Tiamat - Do you dream of me (Sub. Español) Inception-kgL2pz1QOrk.mkv
-                    to: .\Tiamat - Do you dream of me (Sub. Espanol) Inception-kgL2pz1QOrk.mkv
