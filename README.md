@@ -4,15 +4,15 @@ fix_unicode_filenames is a filename fixer that removes all emoji, all unicode, a
 
 It cleanses in two modes:
 
-	*   String mode: Cleanse all emoji/unicode characters 
-	* Filename mode: *Also* cleanse invalid/problematic file characters
+*   String mode: Cleanse all emoji/unicode characters 
+* Filename mode: *Also* cleanse invalid/problematic file characters
 
 It can be used in two ways:
 
-	* Standalone mode: Run in a folder to clean it.  
-	                   Will prompt user for each change unless set to automatic mode.
-	*     Module mode: Incorporate into other program. 
-	                   Use it to cleanse strings, particularly for filenames
+* Standalone mode: Run in a folder to clean it.  
+                   Will prompt user for each change unless set to automatic mode.
+*     Module mode: Incorporate into other program. 
+                   Use it to cleanse strings, particularly for filenames
 
 
 ## What does it fix, generally?
@@ -73,8 +73,8 @@ It can take "auto", "string", "file", and "test" as optional parameters:
 
 ```
 import fix_unicode_filenames
-a_cleaner_string_without_unicode_or_emoji = fix_unicode_filenames.convert_a_string  (original_string___with_unicode_and_emoji, silent_if_unchanged=True)
-a_safer_filename_without_unicode_or_emoji = fix_unicode_filenames.convert_a_filename(original_filename_with_unicode_and_emoji, silent_if_unchanged=True)     
+cleaner_string = fix_unicode_filenames.convert_a_string  (original_with_unicode_and_emoji, silent_if_unchanged=True)
+safer_filename = fix_unicode_filenames.convert_a_filename(original_with_unicode_and_emoji, silent_if_unchanged=True)     
 ```
 
 You can pass: 
