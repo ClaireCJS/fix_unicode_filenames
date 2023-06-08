@@ -12,7 +12,7 @@ It can be used in two ways:
 * Standalone mode: Run in a folder to clean it.  
                    Will prompt user for each change unless set to automatic mode.
 * Module mode: Incorporate into other program. 
-               Use it to cleanse strings, particularly for filenames
+                   Use it to cleanse strings, particularly for filenames
 
 
 ## What does it fix, generally?
@@ -22,22 +22,38 @@ It basically renames filename characters back to year-2000-ish-compliant level c
 The idea is to reduce workflow tool breakage by purging special characters that must be addressed with every tool in a workflow. Avoid edge cases by avoiding the edge.
 
 
-## What does it fix, generally?
+## How do I use it as a standalone tool?
+
+It can take "auto", "string", "file", and "test" as optional parameters:   
+
+```    
+* fix_unicode_filenames 	                 Cleanses all file/folder names in your dir with Yes/No prompting
+* fix_unicode_filenames auto                     Cleanses all file/folder names in your dir automatically
+* fix_unicode_filenames string "test filename"   Test out string mode (remove emoji/unicode) on a string at the command line
+* fix_unicode_filenames file   "test filename"   Test out file   mode (remove   even   more) on a string at the command line
+* fix_unicode_filenames test                     Run internal testing suite / validation
+
+
+
+## Installation: Python
+
+
+GOOD LUCK. I had a hell of a time getting the libraries right for this. I think you'll have to remove polyglot support unless you can get that running. It's hard. And the unidecode library is difficult too. And if you ask the author about it, he just replies with a form letter "I'm sorry it didn't meet your needs" rather than maintaining his code. So good luck.
+
+In theory, though: install the appropriate packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+In practice.... There are 2 wheel files for polyglot that you have to install in specific order. And python-romkan is hard to deal with too. So is unicode. Good luck.
+
+
+## What does it fix as an example?
 
 Check out the entries from [this sample output log](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/example-run-output.log) for how I use it to clean downloaded youtube video filenames.
 
-Many are simply instances of changing unicode hyphens and apostrophes to standard ascii, but other things happen too.
-
-* The 1st section is an example of how it handles emojis, changing "👑 " to "{CROWN}"
-* The 3rd entry ("Beyonce")  removes the accent from the e in Beyonce. 
-* The 4th ("Cartoon Sushi") changes the half symbol (½) to "1--2". Had it been run in string mode instead of filename mode, it would have converted it to "1/2". Remember: Slash is invalid in a filename.
-* "Devi McCallion" (entry #6) used unicode characters to obscure Justin Bieber's name, and these were changed to hash symbols.
-* "Gentlemen Lobsters" (entry #8) have the tilde removed from the spanish "n" enyay character.
-* After that, "Haxan" removes the 2 dots over the a in "Hexan"
-* Further down, "Pink Elephants On Parade", unicode quotes (＂) are turned into apostrophes (') because standard quotes (") are not valid for filenames. But in string mode, it would have been turned into non-unicode ascii quotes (").
-* Right below that, a unicode colon is turned into "- " because colon is invalid in a filename. But in string mode, it would have been turned into a non-unicode ascii colon.
-* The "Cowboy Bebop" one changes those interesting eastern corner brackets around "『Piano』" into normal brackets.
-* etc
+Many are simply instances of changing unicode hyphens and apostrophes to standard ascii, but other things happen too, such as: changing "👑 " to "{CROWN}", removing the accent from the e in Beyonce, changing the half symbol (½) to "1--2". [Had it been run in string mode instead of filename mode, it would have converted it to "1/2", but slash is invalid in a filename], using different symbols to obscure Justin Bieber's name, removing the tilda from the Spanish ns, or the dots over the German as, changing the unicode quotes (＂) around Pink Elephants On Parade, changing the uincode colon, changing the eastern brackets around the "Cowboy Bebop", etc.
  
 
 ## What does it fix, exhaustively?
@@ -56,18 +72,6 @@ Notice how much quicker the 2nd/cleaned one loads, even though the file is 24.61
 That's because we're avoiding all that unicode processing and rendering.
 That's the results we're looking for with this tool: Less overall hassle.
 
-
-## How do I use it as a standalone tool?
-
-It can take "auto", "string", "file", and "test" as optional parameters:   
-
-```    
-* fix_unicode_filenames 	                 Cleanses all file/folder names in your dir with Yes/No prompting
-* fix_unicode_filenames auto                     Cleanses all file/folder names in your dir automatically
-* fix_unicode_filenames string "test filename"   Test out string mode (remove emoji/unicode) on a string at the command line
-* fix_unicode_filenames file   "test filename"   Test out file   mode (remove   even   more) on a string at the command line
-* fix_unicode_filenames test                     Run internal testing suite / validation
-```
 
 ## How do I use it as a programming module?
 
@@ -114,19 +118,6 @@ Or this format, for when we have a good string mode alternative which would NOT 
     "😕": [":/" , "{confused face}"  ],
     "😢": [")':", "{crying face}"    ],
 
-
-## Installation: Python
-
-
-GOOD LUCK. I had a hell of a time getting the libraries right for this. I think you'll have to remove polyglot support unless you can get that running. It's hard. And the unidecode library is difficult too. And if you ask the author about it, he just replies with a form letter "I'm sorry it didn't meet your needs" rather than maintaining his code. So good luck.
-
-In theory, though: install the appropriate packages:
-
-```bash
-pip install -r requirements.txt
-```
-
-In practice.... There are 2 wheel files for polyglot that you have to install in specific order. And python-romkan is hard to deal with too. So is unicode. Good luck.
 
 
 ## Testing
