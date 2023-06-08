@@ -4,13 +4,13 @@ fix_unicode_filenames is a filename fixer that removes all emoji, all unicode, a
 
 It cleanses in two modes:
 
-	* String mode: Cleanse all emoji/unicode characters 
+	*   String mode: Cleanse all emoji/unicode characters 
 	* Filename mode: Additionally cleanse all invalid/problematic file characters
 
 It can be used in two ways:
 
 	* Standalone mode. Run in a folder to cleanse the files in a folder.  It will prompt for each file rename unless you pass "auto" as a parameter.
-	* Incorporate into other program. Use it to cleanse strings in your programs, especially if you're creating new files and want safe filenames.
+	*     Module mode: Incorporate into other program. Use it to cleanse strings, particularly for filenames
 
 
 ## What does it fix, generally?
@@ -20,9 +20,9 @@ It basically renames filename characters back to year-2000-ish-compliant level c
 The idea is to reduce workflow tool breakage by purging special characters that must be addressed with every tool in a workflow. Avoid edge cases by avoiding the edge.
 
 
-## What does it fix, specifically?
+## What does it fix, generally?
 
-Check out the entries from [this sample output log](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/example-run-output.log). 
+Check out the entries from [this sample output log](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/example-run-output.log) for how I use it to clean downloaded youtube video filenames.
 
 Many are simply instances of changing unicode hyphens and apostrophes to standard ascii, but other things happen too.
 
@@ -37,6 +37,14 @@ Many are simply instances of changing unicode hyphens and apostrophes to standar
 * The "Cowboy Bebop" one changes those interesting eastern corner brackets around "『Piano』" into normal brackets.
 * etc
  
+
+## What does it fix, exhaustively?
+
+I made [a list of almost every unicode chracter ever]() to feed it through this.
+
+It turned [ALL OF THEM](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/testdata-generate-every-character-ever.out) into [ALL OF THESE](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/testdata-generate-every-character-ever.out.scrubbed.by.our.tool). (Warning, these may take a bit to load.)
+
+
 
 
 
