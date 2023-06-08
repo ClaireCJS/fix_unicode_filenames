@@ -1,0 +1,8 @@
+Unidecode==1.2.0
+unicodedata
+emoji
+polyglot
+romkan
+pypinyin
+korean_romanizer
+pythainlp
