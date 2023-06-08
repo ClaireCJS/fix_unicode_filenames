@@ -24,14 +24,23 @@ The idea is to reduce workflow tool breakage by purging special characters that 
 
 ## How do I use it as a standalone tool?
 
-It can take "auto", "string", "file", and "test" as optional parameters:   
+It can take "auto", "string", "file", and "test" as optional parameters.   
 
 
-* fix_unicode_filenames 	                 Cleanses all file/folder names in your dir with Yes/No prompting
-* fix_unicode_filenames auto                     Cleanses all file/folder names in your dir automatically
-* fix_unicode_filenames string "test filename"   Test out string mode (remove emoji/unicode) on a string at the command line
-* fix_unicode_filenames file   "test filename"   Test out file   mode (remove   even   more) on a string at the command line
-* fix_unicode_filenames test                     Run internal testing suite / validation
+To cleanse all file/folder names in your dir with Yes/No prompting:
+	* fix_unicode_filenames 	                
+
+To cleanses all file/folder names in your dir automatically:                      
+	* fix_unicode_filenames auto                    
+
+To convert a string mode (remove emoji/unicode) at the command line   
+	* fix_unicode_filenames string "😈🎉 💜😈"  
+
+To do the same, but in filename mode:
+	* fix_unicode_filenames file   "😈🎉 💜😈"  
+
+To Run internal testing suite / validation                                       
+	* fix_unicode_filenames test                    
 
 
 
