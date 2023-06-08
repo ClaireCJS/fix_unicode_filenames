@@ -26,7 +26,7 @@ The idea is to reduce workflow tool breakage by purging special characters that 
 
 It can take "auto", "string", "file", and "test" as optional parameters:   
 
-```    
+
 * fix_unicode_filenames 	                 Cleanses all file/folder names in your dir with Yes/No prompting
 * fix_unicode_filenames auto                     Cleanses all file/folder names in your dir automatically
 * fix_unicode_filenames string "test filename"   Test out string mode (remove emoji/unicode) on a string at the command line
