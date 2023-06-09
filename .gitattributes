@@ -1,4 +1,4 @@
-*.bat linguist-detectable=false
+#*.bat linguist-detectable=false
 *.* linguist-detectable=false
 *.py linguist-detectable=true
 *.py linguist-language=Python
