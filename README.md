@@ -67,7 +67,7 @@ Many are simply instances of changing unicode hyphens and apostrophes to standar
 
 ### Example of it being used as a submodule in my ingest_youtube_album project:
 ![image](https://github.com/ClaireCJS/fix_unicode_filenames/assets/789591/91f0fbe4-22f9-47dd-82f0-58d0fd722db2)
-In this case, Nirvana's famous song with a controversial title was censored with a unicode asterisk, which is something I don't personally want in filenames because it looks like a normal asterisk, which is an invalid character. So fix_unicode_filenames was invoked to clenase the filenam
+In this case, Nirvana's famous song with a controversial title was censored with a unicode asterisk, which is something I don't personally want in filenames because it looks like a normal asterisk, which is an invalid character. So fix_unicode_filenames cleansed the filename into stanard ascii, which would have been an ascii asterisk, except that's not valid for a filename, so it is changed to an 'x' instead. You can change that mapping to whatever you want in the code.
 
 
 # What does it fix, exhaustively?
