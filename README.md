@@ -1,6 +1,6 @@
 # fix_unicode_filenames
 
-fix_unicode_filenames cleanses all emoji & unicode characters not just from filenames, but also from strings
+### Cleanses all emoji & unicode characters not just from filenames, but also from strings
 
 It can be invoked in two ways:
 
