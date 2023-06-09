@@ -743,8 +743,8 @@ unicode_to_ascii_custom_character_mapping = {
     "😲": [":O", "O_O"],    # astonished face
     "😁": ["^_^", "{beaming face with smiley eyes}"],          # beaming face with smiling eyes
     "😖": [">.<", "{confounded face}"],    # confounded face
-    "😕": [":/", "TT"],    # confused face
-    "😢": [")':", "TT"],   # crying face
+    "😕": [":/", "{confused face}"],    # confused face
+    "😢": [")':", "{crying face}"],   # crying face
     "😭": [")':", "TT"],   # loudly crying face
     "😓": ["^^;", "^^'"],   # downcast face with sweat
     "😈": [">;)", "{devil smiling}"],   # devil smiling
@@ -1355,6 +1355,4 @@ if __name__ == "__main__":
 
     main()
 
-
-#TODO: consider adding total failback method that simply coverts unknown emoji to their code
 
