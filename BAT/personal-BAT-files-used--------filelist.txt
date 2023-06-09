@@ -5,7 +5,7 @@
 2023-06-03  03:48             88    4%  validate-environment-variables.bat
 2023-06-05  22:29         11,577   75%  validate-environment-variable.bat
 2023-05-29  17:47          4,116   71%  white-noise.bat
-2023-06-09  11:50          1,483   59%  ASKYN.BAT
+2023-06-09  11:50          1,483   59%  askYN.bat
 2023-06-05  01:20             48   -4%  unimportant.bat
 2023-06-09  11:49          8,051   72%  print-message.bat
 2019-10-01  10:28            331   52%  randcolor.bat
@@ -20,3 +20,5 @@
 2023-06-09  11:54          7,979   73%  errorlevel.bat
 2023-05-30  11:25            124   28%  print-if-debug.bat
 2023-05-29  22:39             43   -4%  advice.bat
+2023-06-04  11:19            528   39%  change-escape-character-to-tilde.bat
+2023-06-01  14:56            710   45%  change-escape-character-to-carrot.bat
