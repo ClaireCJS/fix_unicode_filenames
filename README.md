@@ -1,4 +1,4 @@
-# ☀️☀️☀️☀️☀️☀️☀️☀️☀️☀️ fix_unicode_filenames ☀️☀️☀️☀️☀️☀️☀️☀️☀️☀️
+# 🎊🎉🥳 fix_unicode_filenames 🥳🎉🎊
 
 ## Cleanses all emoji & unicode characters not just from filenames, but also from strings
 
