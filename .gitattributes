@@ -1,5 +1,5 @@
 *.py  *.spec linguist-language=Python
-*.bat        linguist-documentatoin=true
+*.bat        linguist-documentation=true
 *.log        linguist-documentation=true
 
 
