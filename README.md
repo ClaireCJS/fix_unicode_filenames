@@ -1,6 +1,6 @@
 # fix_unicode_filenames
 
-### Cleanses all emoji & unicode characters not just from filenames, but also from strings
+## Cleanses all emoji & unicode characters not just from filenames, but also from strings
 
 It can be invoked in two ways:
 
@@ -17,7 +17,7 @@ To cleanse in two ways:
 
 
 
-## What does it fix, generally?
+# What does it fix, generally?
 
 It basically renames filename characters back to year-2000-ish-compliant level characters, along with removing other characters that can be problematic in command-line situations.
 
@@ -26,7 +26,7 @@ The idea is to reduce workflow tool breakage by purging special characters that 
 
 
 
-## How do I use it as a programming module?
+# How do I use it as a programming module?
 
 ```
 import fix_unicode_filenames
@@ -39,7 +39,7 @@ You can pass:
 
 
 
-## How do I use it as a standalone tool?
+# How do I use it as a standalone tool?
 
 It can be run in 5 usual modes:
 
@@ -62,14 +62,14 @@ Which can be invoked like this:
 
 
 
-## What does it fix as an example?
+# What does it fix as an example?
 
 Check out the entries from [this sample output log](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/example-run-output.log) for how I use it to clean downloaded youtube video filenames.
 
 Many are simply instances of changing unicode hyphens and apostrophes to standard ascii, but other things happen too, such as: changing "👑 " to "{CROWN}", removing the accent from the e in Beyonce, changing the half symbol (½) to "1--2". [Had it been run in string mode instead of filename mode, it would have converted it to "1/2", but slash is invalid in a filename], using different symbols to obscure Justin Bieber's name, removing the tilda from the Spanish ns, or the dots over the German as, changing the unicode quotes (＂) around Pink Elephants On Parade, changing the uincode colon, changing the eastern brackets around the "Cowboy Bebop", etc.
  
 
-## What does it fix, exhaustively?
+# What does it fix, exhaustively?
 
 I created [this tool to print pretty much every printable unicode/emoji chracter ever](https://github.com/ClaireCJS/fix_unicode_filenames/blob/main/testdata-generate-every-character-ever.py), which then created [this output file of pretty much every printable unicode/emoji character ever](https://github.com/ClaireCJS/fix_unicode_filenames/blob/main/testdata-generate-every-character-ever.out), though I moved the emojis to the bottom of the file for testing purposes.  I then feed it through the script [to create this output file of every character ever as transformed by this tool](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/testdata-generate-every-character-ever.out.scrubbed.by.our.tool).
 
@@ -91,7 +91,7 @@ That's the results we're looking for with this tool: Less overall hassle by avoi
 
 
 
-## How does this work under the hood?
+# How does this work under the hood?
 
 First, our custom/manually-created mapping library is used.  This was hand-made with some amount of care.
 
@@ -109,7 +109,7 @@ If nothing is found, an exception is thrown, explaining to add the character to 
 
 
 
-## Internal mapping table format:
+# Internal mapping table format:
 
 Entries are either in this format [one key, one value] for when the alternative is valid for filenames:
 
@@ -134,7 +134,7 @@ Still other characters _cannot even be referenced by their code directly_, and t
 That pesky dragon!
 
 
-## Advanced usage
+# Advanced usage
 
 Wrap it up in a BAT file that captures the errorlevel.
 If there is an errorlevel, automatically re-run it.
@@ -144,14 +144,14 @@ An example TCC BAT (really BTM) file [can be found here](https://github.com/Clai
 
 
 
-## Testing
+# Testing
 
 A lot was done. I mean a lot. A ton. But nothing formal until the very end with running every-character-ever through it, and it's too big a data set to manually check. But it seems to be working well in my presonal workflows.
 
 Also, the code got corrupted due to the presence of unicode characters in it -- OH THE SWEET IRONY -- and a lot of stuff got redone with a quarter of the original effort :/  I had made some really well thought out mappings and didn't bother the second time. It was a mistake to ever paste unicode chracters into source code, but I wanted to test the validity of that approach, too. Alas, the easiest way to add new charactesr to the lookup table is to simply paste them in. If that fails, looking them up and doing them by code will work. A few pesky characters could ONLY be refererenced by code, and some only indirectly, so there are some weird code workarounds for those situtations, and a few outliers in the lookup table (documented above).
 
 
-## Installation: Python
+# Installation: Python
 
 
 GOOD LUCK. I had a hell of a time getting the libraries right for this. I think you'll have to remove polyglot support unless you can get that running. It's hard. And the unidecode library is difficult too. And if you ask the author about it, he just replies with a form letter "I'm sorry it didn't meet your needs" rather than maintaining his code. So good luck.
@@ -166,13 +166,13 @@ In practice.... There are 2 wheel files for polyglot that you have to install in
 
 
 
-## Those wacky BAT files?
+# Those wacky BAT files?
 
 I use TCC -- Take Command Command Line.
 Technically, my .BAT files are .BTM files.
 They're really for me, but sometimes I include them in my repo since I want them version controlled, too.
 
-## License
+# License
 
 [The Unlicense](https://choosealicense.com/licenses/unlicense/)
 
