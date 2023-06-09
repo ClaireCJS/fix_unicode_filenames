@@ -15,6 +15,19 @@ It can be used in two ways:
                    Use it to cleanse strings, particularly for filenames
 
 
+## How do I use it as a programming module?
+
+```
+import fix_unicode_filenames
+cleaner_string = fix_unicode_filenames.convert_a_string  (original_with_unicode_and_emoji, silent_if_unchanged=True)
+safer_filename = fix_unicode_filenames.convert_a_filename(original_with_unicode_and_emoji, silent_if_unchanged=True)     
+```
+You can pass: 
+* silent_if_unchanged=True - shut up about unchanged files, only tell me what you fixed
+* silent=True              - shut up about everything, just do it
+
+
+
 ## What does it fix, generally?
 
 It basically renames filename characters back to year-2000-ish-compliant level characters, along with removing other characters that can be problematic in command-line situations.
@@ -74,19 +87,6 @@ That's because we're avoiding all that unicode processing and rendering.
 
 That's the results we're looking for with this tool: Less overall hassle by avoiding harder-to-process characters in our workflows.
 
-
-## How do I use it as a programming module?
-
-```
-import fix_unicode_filenames
-cleaner_string = fix_unicode_filenames.convert_a_string  (original_with_unicode_and_emoji, silent_if_unchanged=True)
-safer_filename = fix_unicode_filenames.convert_a_filename(original_with_unicode_and_emoji, silent_if_unchanged=True)     
-```
-
-You can pass: 
-
-* silent_if_unchanged=True to make it shut up about all the changes it did NOT make, which is generally going to be the default in this situation
-* silent=True              to make it shut up about all the changes it DID     make, which really depends on your preferences for  your situation
 
 
 ## How does this work under the hood?
