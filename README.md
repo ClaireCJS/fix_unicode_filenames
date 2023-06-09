@@ -46,13 +46,15 @@ It can be run in 5 usual modes, using "auto", "string", "file", and "test" as op
 2. To cleanse all file/folder names in your dir automatically
 3. To convert a string mode (remove emoji/unicode) at the command line
 4. To do the same, but in filename mode
-5. To Run internal testing suite / lookup table validation```
+5. To Run internal testing suite / lookup table validation
+```
 
 ```1. fix_unicode_filenames 	                
 2. fix_unicode_filenames auto                    
 3. fix_unicode_filenames string "😈🎉 💜😈"  
 4. fix_unicode_filenames file   "😈🎉 💜😈"  
-5. fix_unicode_filenames test```     
+5. fix_unicode_filenames test
+```     
 
 
 
