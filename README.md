@@ -31,19 +31,18 @@ It can take "auto", "string", "file", and "test" as optional parameters.
 
 * fix_unicode_filenames 	                
 
-To cleanses all file/folder names in your dir automatically:                      
+**To cleanse all file/folder names in your dir automatically:**
 
 * fix_unicode_filenames auto                    
 
 **To convert a string mode (remove emoji/unicode) at the command line:**
 * fix_unicode_filenames string "😈🎉 💜😈"  
 
-To do the same, but in filename mode:
-
+**To do the same, but in filename mode:**
 * fix_unicode_filenames file   "😈🎉 💜😈"  
 
-To Run internal testing suite / validation                                       
-    * fix_unicode_filenames test                    
+**To Run internal testing suite / lookup table validation**
+* fix_unicode_filenames test                    
 
 
 
