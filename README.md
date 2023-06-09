@@ -15,24 +15,27 @@ It can be used in two ways:
                    Use it to cleanse strings, particularly for filenames
 
 
-## How do I use it as a programming module?
-
-```
-import fix_unicode_filenames
-cleaner_string = fix_unicode_filenames.convert_a_string  (original_with_unicode_and_emoji, silent_if_unchanged=True)
-safer_filename = fix_unicode_filenames.convert_a_filename(original_with_unicode_and_emoji, silent_if_unchanged=True)     
-```
-You can pass: 
-* silent_if_unchanged=True - shut up about unchanged files, only tell me what you fixed
-* silent=True              - shut up about everything, just do it
-
-
 
 ## What does it fix, generally?
 
 It basically renames filename characters back to year-2000-ish-compliant level characters, along with removing other characters that can be problematic in command-line situations.
 
 The idea is to reduce workflow tool breakage by purging special characters that must be addressed with every tool in a workflow. Avoid edge cases by avoiding the edge.
+
+
+
+
+## How do I use it as a programming module?
+
+```
+import fix_unicode_filenames
+cleaner_string = fix_unicode_filenames.convert_a_string  (dirty_string,   silent=True)
+safer_filename = fix_unicode_filenames.convert_a_filename(dirty_filename, silent_if_unchanged=True)     
+```
+You can pass: 
+* silent_if_unchanged=True - shut up about unchanged files, only tell me what you fixed
+* silent=True              - shut up about everything, just do it silently
+
 
 
 ## How do I use it as a standalone tool?
