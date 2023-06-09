@@ -4,10 +4,8 @@
 
 It can be invoked in two ways:
 
-* Standalone mode: Run in a folder to clean it
-                   Will prompt for each change unless set to automatic
-* Module mode: Incorporate into other program. 
-                   Use it to cleanse strings, particularly for filenames
+* Standalone mode: Run in a folder to cleanse. Prompts for each change by default.
+* Module mode: Use in your own code to cleanse strings, particularly for filenames
 
 To cleanse in two ways:
 
