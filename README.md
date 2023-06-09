@@ -110,17 +110,27 @@ If nothing is found, an exception is thrown, explaining to add the character to 
 
 ## Internal mapping table format:
 
-Lines are either in this format for when the alternative is valid for filenames:
+Entries are either in this format [one key, one value] for when the alternative is valid for filenames:
 
     '∑' :   'E=',   #quite the stretch, maybe "sigma" would be better
     '∫' :   'S=',   #quite the stretch, maybe "sum"   would be better
 
-Or this format, for when we have a good string mode alternative which would NOT work as a filename (most emoticons are not valid filenames due to the eyes being represented with colons):
+Or in this format [one key, array of two values], for when we have a good string mode alternative which would NOT work as a filename (most emoticons are not valid filenames due to the eyes being represented with colons), and have a separate mapping for our filenames (very common with face-related emoji):
 
     "😖": [">.<", "{confounded face}"],
     "😕": [":/" , "{confused face}"  ],
     "😢": [")':", "{crying face}"    ],
 
+Some characters cannot be directly pasted into the lookup table -- they just don't process right in python or they get corrupted in the file after pasting -- so you must insert their code instead:
+
+    '\u0081':      ["{control}"       ],
+    '\u0090':      ["{device control}"],
+
+Still other characters _cannot even be referenced by their code directly_, and this is a hard situation to figure out, so an additional workaround had to be implemented for those chracters, and looks like this:
+
+    "code u1f409":  ["{dragon}",],
+
+That pesky dragon!
 
 
 ## Advanced usage
@@ -135,9 +145,9 @@ An example TCC BAT (really BTM) file [can be found here](https://github.com/Clai
 
 ## Testing
 
-A lot was done. I mean a lot. A ton. But nothing formal.
+A lot was done. I mean a lot. A ton. But nothing formal until the very end with running every-character-ever through it, and it's too big a data set to manually check. But it seems to be working well in my presonal workflows.
 
-And then the code got corrupted due to the presence of unicode characters in it -- OH THE SWEET IRONY -- and a lot of stuff got redone with a quarter of the original effort :/
+Also, the code got corrupted due to the presence of unicode characters in it -- OH THE SWEET IRONY -- and a lot of stuff got redone with a quarter of the original effort :/  I had made some really well thought out mappings and didn't bother the second time. It was a mistake to ever paste unicode chracters into source code, but I wanted to test the validity of that approach, too. Alas, the easiest way to add new charactesr to the lookup table is to simply paste them in. If that fails, looking them up and doing them by code will work. A few pesky characters could ONLY be refererenced by code, and some only indirectly, so there are some weird code workarounds for those situtations, and a few outliers in the lookup table (documented above).
 
 
 ## Installation: Python
