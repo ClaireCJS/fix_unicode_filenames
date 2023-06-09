@@ -1,6 +1,7 @@
-*.py  *.spec linguist-language=Python
-*.bat        linguist-documentation=true
-*.log        linguist-documentation=true
+*.py linguist-language=Python
+*.spec linguist-language=Python
+*.bat linguist-documentation=true
+*.log linguist-documentation=true
 
 
 # NICE ANSWERS HERE: ---> https://stackoverflow.com/questions/34713765/github-changes-repository-to-the-wrong-language
