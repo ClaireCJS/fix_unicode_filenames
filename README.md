@@ -56,9 +56,9 @@ Many are simply instances of changing unicode hyphens and apostrophes to standar
 
 ## What does it fix, exhaustively?
 
-I made [a list of almost every unicode chracter ever]() to feed it through this.
+I created [this tool to print pretty much every printable unicode/emoji chracter ever](https://github.com/ClaireCJS/fix_unicode_filenames/blob/main/testdata-generate-every-character-ever.py), which then created [this output file of pretty much every printable unicode/emoji character ever](https://github.com/ClaireCJS/fix_unicode_filenames/blob/main/testdata-generate-every-character-ever.out), though I moved the emojis to the bottom of the file for testing purposes.  I then feed it through the script [to create this output file of every character ever as transformed by this tool](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/testdata-generate-every-character-ever.out.scrubbed.by.our.tool).
 
-It turned:
+So basically, it turned:
 
 * [ALL OF THIS UNICODE](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/testdata-generate-every-character-ever.out)
 
@@ -67,8 +67,10 @@ It turned:
 * [ALL OF THESE ASCII](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/testdata-generate-every-character-ever.out.scrubbed.by.our.tool). 
 
 Notice how much quicker the 2nd/cleaned one loads, even though the file is 24.61X larger in size? 
+
 That's because we're avoiding all that unicode processing and rendering.
-That's the results we're looking for with this tool: Less overall hassle.
+
+That's the results we're looking for with this tool: Less overall hassle by avoiding harder-to-process characters in our workflows.
 
 
 ## How do I use it as a programming module?
