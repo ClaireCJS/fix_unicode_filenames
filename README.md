@@ -9,8 +9,8 @@ It cleanses in two modes:
 
 It can be used in two ways:
 
-* Standalone mode: Run in a folder to clean it.  
-                   Will prompt user for each change unless set to automatic mode.
+* Standalone mode: Run in a folder to clean it
+                   Will prompt for each change unless set to automatic
 * Module mode: Incorporate into other program. 
                    Use it to cleanse strings, particularly for filenames
 
@@ -116,6 +116,16 @@ Or this format, for when we have a good string mode alternative which would NOT 
     "😖": [">.<", "{confounded face}"],
     "😕": [":/" , "{confused face}"  ],
     "😢": [")':", "{crying face}"    ],
+
+
+
+## Advanced usage
+
+Wrap it up in a BAT file that captures the errorlevel.
+If there is an errorlevel, automatically re-run it.
+If there is no error, roll the log file to reycle bin.
+
+An example TCC BAT (really BTM) file [can be found here](https://github.com/ClaireCJS/fix_unicode_filenames/blob/main/fix-unicode-filenames.bat), and if you want to run it, grab all the [dependency BAT files found here](https://github.com/ClaireCJS/fix_unicode_filenames/tree/main/BAT).
 
 
 
