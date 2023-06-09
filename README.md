@@ -49,6 +49,7 @@ It can take "auto", "string", "file", and "test" as optional parameters, and gen
 4. To do the same, but in filename mode:
 5. To Run internal testing suite / lookup table validation
 
+
 1. fix_unicode_filenames 	                
 2. fix_unicode_filenames auto                    
 3. fix_unicode_filenames string "😈🎉 💜😈"  
