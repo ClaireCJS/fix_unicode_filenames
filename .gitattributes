@@ -1,7 +1,11 @@
+*.bat linguist-detectable=false
+*.* linguist-detectable=false
+*.py linguist-detectable=true
 *.py linguist-language=Python
 *.spec linguist-language=Python
 *.bat linguist-documentation=true
 *.log linguist-documentation=true
+
 
 
 
