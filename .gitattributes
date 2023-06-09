@@ -5,7 +5,9 @@
 *.spec linguist-language=Python
 *.bat linguist-documentation=true
 *.log linguist-documentation=true
-
+python-romkan\*.* linguist-vendor=true
+polyglot\*.* linguist-vendor=true
+polyglot-wheel-files-to-install-before-polyglot\*.* linguist-vendor=true
 
 
 
