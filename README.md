@@ -32,8 +32,8 @@ cleaner_string = fix_unicode_filenames.convert_a_string  (dirty_string,   silent
 safer_filename = fix_unicode_filenames.convert_a_filename(dirty_filename, silent_if_unchanged=True)     
 ```
 You can pass: 
-* silent_if_unchanged=True - shut up about unchanged files, only tell me what you fixed
-* silent=True              - shut up about everything, just do it silently
+* silent_if_unchanged=True - only tell me what you fixed, instead of everything 
+* silent=True              - shut up completely, just do it silently (good for module mode)
 
 
 
