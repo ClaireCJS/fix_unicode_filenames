@@ -23,22 +23,6 @@ The idea is to reduce workflow tool breakage by purging special characters that 
 
 
 
-
-# How do I use it as a programming module?
-
-```
-import fix_unicode_filenames
-cleaner_string = fix_unicode_filenames.convert_a_string  (dirty_string,   silent=True)
-safer_filename = fix_unicode_filenames.convert_a_filename(dirty_filename, silent_if_unchanged=True
-                                                                          silent_if_changed=False)     
-```
-You can pass: 
-* silent_if_unchanged=True/False - notify if a file is NOT changed
-* silent_if_changed=True/False   - notify if a file IS     changed
-* silent=True                    - completely silent operation
-
-
-
 # How do I use it as a standalone tool?
 
 It can be run in 5 usual modes:
@@ -61,13 +45,30 @@ Which can be invoked like this:
 
 
 
+# How do I use it as a programming module?
+
+```
+import fix_unicode_filenames
+cleaner_string = fix_unicode_filenames.convert_a_string  (dirty_string,   silent=True)
+safer_filename = fix_unicode_filenames.convert_a_filename(dirty_filename, silent_if_unchanged=True
+                                                                          silent_if_changed=False)     
+```
+You can pass: 
+* silent_if_unchanged=True/False - notify if a file is NOT changed
+* silent_if_changed=True/False   - notify if a file IS     changed
+* silent=True                    - completely silent operation
+
 
 # What does it fix as an example?
 
 Check out the entries from [this sample output log](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/example-run-output.log) for how I use it to clean downloaded youtube video filenames.
 
 Many are simply instances of changing unicode hyphens and apostrophes to standard ascii, but other things happen too, such as: changing "👑 " to "{CROWN}", removing the accent from the e in Beyonce, changing the half symbol (½) to "1--2". [Had it been run in string mode instead of filename mode, it would have converted it to "1/2", but slash is invalid in a filename], using different symbols to obscure Justin Bieber's name, removing the tilda from the Spanish ns, or the dots over the German as, changing the unicode quotes (＂) around Pink Elephants On Parade, changing the uincode colon, changing the eastern brackets around the "Cowboy Bebop", etc.
- 
+
+ Example of it being used as a submodule in my ingest_youtube_album project:
+![image](https://github.com/ClaireCJS/fix_unicode_filenames/assets/789591/91f0fbe4-22f9-47dd-82f0-58d0fd722db2)
+
+
 
 # What does it fix, exhaustively?
 
