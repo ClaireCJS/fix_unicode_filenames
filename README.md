@@ -65,9 +65,9 @@ Check out the entries from [this sample output log](https://raw.githubuserconten
 
 Many are simply instances of changing unicode hyphens and apostrophes to standard ascii, but other things happen too, such as: changing "👑 " to "{CROWN}", removing the accent from the e in Beyonce, changing the half symbol (½) to "1--2". [Had it been run in string mode instead of filename mode, it would have converted it to "1/2", but slash is invalid in a filename], using different symbols to obscure Justin Bieber's name, removing the tilda from the Spanish ns, or the dots over the German as, changing the unicode quotes (＂) around Pink Elephants On Parade, changing the uincode colon, changing the eastern brackets around the "Cowboy Bebop", etc.
 
- Example of it being used as a submodule in my ingest_youtube_album project:
+### Example of it being used as a submodule in my ingest_youtube_album project:
 ![image](https://github.com/ClaireCJS/fix_unicode_filenames/assets/789591/91f0fbe4-22f9-47dd-82f0-58d0fd722db2)
-
+In this case, Nirvana's famous song with a controversial title was censored with a unicode asterisk, which is something I don't personally want in filenames because it looks like a normal asterisk, which is an invalid character. So fix_unicode_filenames was invoked to clenase the filenam
 
 
 # What does it fix, exhaustively?
