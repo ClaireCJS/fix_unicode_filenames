@@ -58,7 +58,7 @@ Many are simply instances of changing unicode hyphens and apostrophes to standar
 
 I created [this tool to print pretty much every printable unicode/emoji chracter ever](https://github.com/ClaireCJS/fix_unicode_filenames/blob/main/testdata-generate-every-character-ever.py), which then created [this output file of pretty much every printable unicode/emoji character ever](https://github.com/ClaireCJS/fix_unicode_filenames/blob/main/testdata-generate-every-character-ever.out), though I moved the emojis to the bottom of the file for testing purposes.  I then feed it through the script [to create this output file of every character ever as transformed by this tool](https://raw.githubusercontent.com/ClaireCJS/fix_unicode_filenames/main/testdata-generate-every-character-ever.out.scrubbed.by.our.tool).
 
-[For testing, I also installed the [GNU Unifont](https://localfonts.eu/freefonts/traditional-cyrillic-free-fonts/unifont/), an open-source font that promises to display more of these characters than other fonts. Though typically I use Consolas Code in my console, this was good for testing. I used the TrueType font version, [unifont-15.0.06.ttf, which can be downloaded here](The Standard Unifont TTF Download: unifont-15.0.06.ttf).]
+[For testing, I also installed the [GNU Unifont](https://localfonts.eu/freefonts/traditional-cyrillic-free-fonts/unifont/), an open-source font that promises to display more of these characters than other fonts. Though typically I use Consolas Code in my console, this was good for testing. I used the TrueType font version, [unifont-15.0.06.ttf, which can be downloaded here](http://www.unifoundry.com/pub/unifont/unifont-15.0.06/font-builds/unifont-15.0.06.ttf).]
 
 So basically, it turned:
 
