@@ -29,11 +29,13 @@ The idea is to reduce workflow tool breakage by purging special characters that 
 ```
 import fix_unicode_filenames
 cleaner_string = fix_unicode_filenames.convert_a_string  (dirty_string,   silent=True)
-safer_filename = fix_unicode_filenames.convert_a_filename(dirty_filename, silent_if_unchanged=True)     
+safer_filename = fix_unicode_filenames.convert_a_filename(dirty_filename, silent_if_unchanged=True
+                                                                          silent_if_changed=False)     
 ```
 You can pass: 
-* silent_if_unchanged=True - only tell me what you fixed, instead of everything 
-* silent=True              - shut up completely, just do it silently (good for module mode)
+* silent_if_unchanged=True/False - notify if a file is NOT changed
+* silent_if_changed=True/False   - notify if a file IS     changed
+* silent=True                    - completely silent operation
 
 
 
