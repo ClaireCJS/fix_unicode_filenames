@@ -112,23 +112,23 @@ If nothing is found, an exception is thrown, explaining to add the character to 
 
 Entries are either in this format [one key, one value] for when the alternative is valid for filenames:
 
-    '∑' :   'E=',   #quite the stretch, maybe "sigma" would be better
-    '∫' :   'S=',   #quite the stretch, maybe "sum"   would be better
+    '∑' :   'E=',   #or change this to "Sigma=" if that is your opinion :)
+    '∫' :   'S=',   #or change this to "Sum="   if that is your opinion :)
 
 Or in this format [one key, array of two values], for when we have a good string mode alternative which would NOT work as a filename (most emoticons are not valid filenames due to the eyes being represented with colons), and have a separate mapping for our filenames (very common with face-related emoji):
 
-    "😖": [">.<", "{confounded face}"],
-    "😕": [":/" , "{confused face}"  ],
+    "😖": [">.<", "{confounded face}"], 
+    "😕": [":/" , "{confused face}"  ], #change "😕" to ":/" in string mode, "{confused face}" in file mode
     "😢": [")':", "{crying face}"    ],
 
 Some characters cannot be directly pasted into the lookup table -- they just don't process right in python or they get corrupted in the file after pasting -- so you must insert their code instead:
 
-    '\u0081':      ["{control}"       ],
-    '\u0090':      ["{device control}"],
+    '\u0081':      ["{control}"       ], #these characters are usually invisible
+    '\u0090':      ["{device control}"], #but we want those converted too!
 
 Still other characters _cannot even be referenced by their code directly_, and this is a hard situation to figure out, so an additional workaround had to be implemented for those chracters, and looks like this:
 
-    "code u1f409":  ["{dragon}",],
+    "code u1f409":  ["{dragon}",],	 #probably the same dragon from the Atari 2600 Adventure game!
 
 That pesky dragon!
 
