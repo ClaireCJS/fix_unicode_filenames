@@ -46,16 +46,15 @@
         SETUP: To suppress user prompting: set AUTOMATIC_UNICODE_CLEANING=1
 
         MODE 1:  No      arguments  : Run with no arguments to cleanse everything in your existing folder of unicode characters
-              :  "auto"  argum
-              ent   : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Do this, but suppress confirmation prompts
+              :  "auto"  argument   : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Do this, but suppress confirmation prompts
         MODE 2: "file   <arguments>": Use "file"   as your first argument to cleanse the rest of the command line of unicode, as if it were a windows filename
         MODE 3: "string <arguments>": Use "string" as your first argument to cleanse the rest of the command line of unicode, without restricting to only-valid-in-windows-fiklenames
         MODE 4: "test"              : to convert the internal testing string
 
-    PROGRAMMATIC USAGE:
+    EXAMPLE PROGRAMMATIC USAGE:
         import fixUnicodeFilenames
-        a_string_without_unicode = fixUnicodeFilenames.convert_a_string  (original_stringval_with_unicode)
-        filename_without_unicode = fixUnicodeFilenames.convert_a_filename(original_file_name_with_unicode,silent_if_unchanged=True)     #silent_if_unchanged=True suppresses output if nothing changes
+        a_string_without_unicode = fixUnicodeFilenames.convert_a_string  (original_stringval_with_unicode,silent=False)
+        filename_without_unicode = fixUnicodeFilenames.convert_a_filename(original_file_name_with_unicode,silent_if_unchanged=True,silent_if_changed=True)
          #silent=suppresses all output no matter what
 
 
@@ -96,6 +95,7 @@ import os
 os.system("")                                                               #necessary bugfix, believe it or not #GOAT but let's try taking it out to challenge ourselves and maybe speedup startup time
 os.environ['PYTHAINLP_ZONEINFO_PACKAGE'] = 'tzdata'                         #necessary bugfix, believe it or not
 import sys ; sys.setrecursionlimit(sys.getrecursionlimit() * 5)             #recursionlimit came up during EXE-build attempts
+import shutil
 import msvcrt
 import builtins
 #import unidecode                                                           #pip install Unidecode==1.2.0 - for the right one - capitalizing the U (or not) is (or isn't) important. this package sucks.
@@ -132,12 +132,6 @@ DEBUG_INTERNAL_TESTING=False
 INVALID_WINDOWS_FILENAME_CHARACTERS = r'<>:"/\|?*'
 ###################################################################
 
-def last_minute_filename_cleanser(filename):
-    global INVALID_WINDOWS_FILENAME_CHARACTERS
-    if any(char in INVALID_WINDOWS_FILENAME_CHARACTERS for char in filename):
-        filename = convert_a_filename(filename,silent_if_unchanged=False)   #TODO true
-    filename = filename.lstrip('.-')  # Strip "." or "-" from the beginning of the filename
-    return filename
 
 ###################################### TESTING ######################################
 ## CREATE A GOOD TESTING STRING:
@@ -519,22 +513,97 @@ def rename_files_in_current_directory(mode="file",automatic_mode=False):        
             old_file = os.path.join(directory, filename)
             new_file = os.path.join(directory, new_name)
 
-            if do_it_for_real: os.rename(old_file, last_minute_filename_cleanser(new_file))
+            new_new_file = last_minute_filename_cleanser(new_file)              #if we've put invalid values in our mapping table without having run our tests, it can be possible to have to cleanse one more time.  Also, some emoji libraries may decode into something invalid for filenames, and since we didn't test if all the decodings were valid, we must run it through a 2nd time for that possibility as well. It's unfortunate, but not expensive.
+            if do_it_for_real:
+                #os.rename(old_file, new_new_file)                              #would error if new folder already existed
+                rename_folder_but_if_renamed_is_a_folder_that_already_exists_then_move_files_into_it_instead(old_file, new_new_file)
 
             primt("\n")
-            if automatic: primt(f"\t{Fore.YELLOW} Automatic Run: ")
-            if DRY_RUN:   primt(f"\t{Fore.YELLOW}" +  "Dry Run: ")
-            primt(f"{Fore.GREEN}{Style.NORMAL}\t{action_string}:\t{Fore.LIGHTBLACK_EX}{old_file} " +
-                  f"{Fore.CYAN}\n\t\t    to:\t{Fore.GREEN}{new_file}{Style.NORMAL}\n\n\n")
+            if automatic: primt(f"\t{Fore.YELLOW} Automatic Run: {mode}")
+            if DRY_RUN:   primt(f"\t{Fore.YELLOW}" +   "Dry Run: ")
+            primt(f"{Fore.GREEN}{Style.NORMAL}\t{action_string}:" + f"\t{Fore.LIGHTBLACK_EX}{old_file} " +
+                  f"{Fore.CYAN}\n\t\t    to:" +  f"\t{Fore.GREEN}{new_new_file}{Style.NORMAL}\n\n\n")
     if not any_files_found_to_rename_at_all:
         primt(f"{Fore.RED}No files with unicode characters found.{Style.RESET_ALL}")
 
 
-## Public calls:
-def convert_a_string  (string_to_convert  ,silent_if_unchanged=False, silent=False): return just_convert_a_string(  string_to_convert,"string",silent_if_unchanged=silent_if_unchanged,silent=silent)
-def convert_a_filename(filename_to_convert,silent_if_unchanged=False, silent=False): return just_convert_a_string(filename_to_convert,"file"  ,silent_if_unchanged=silent_if_unchanged,silent=silent)
 
-def just_convert_a_string(string_to_convert,mode,silent_if_unchanged=False,silent=False):
+
+def rename_folder_but_if_renamed_is_a_folder_that_already_exists_then_move_files_into_it_instead(old_name, new_name):
+    if not os.path.exists(new_name):                              # If the new folder doesn't exist, simply rename the old folder
+        os.rename(old_name, new_name)
+    else:
+        for filename in os.listdir(old_name):                 # If the new folder exists, move all files from the old folder to the new one
+            old_file_path = os.path.join(old_name, filename)
+            new_file_path = os.path.join(new_name, filename)
+
+            # If a file with the same name exists in the new directory, it will be replaced
+            # If you don't want this behavior, you can add a check here
+            shutil.move(old_file_path, new_file_path)
+
+        # Optionally, if you want to delete the old folder after moving all files
+        os.rmdir(old_name)
+
+
+
+
+
+
+
+
+
+
+def last_minute_filename_cleanser_original(filename):
+    """
+    This whole program could be just this one function, if we were not too picky.
+    """
+    global INVALID_WINDOWS_FILENAME_CHARACTERS
+    if any(char in INVALID_WINDOWS_FILENAME_CHARACTERS for char in filename):
+        filename = convert_a_filename(filename,silent_if_unchanged=False)   #TODO true
+    filename = filename.lstrip('.-')  # Strip "." or "-" from the beginning of the filename
+    return filename
+
+
+def last_minute_filename_cleanser(filename):
+    global INVALID_WINDOWS_FILENAME_CHARACTERS
+
+    leading_patterns = [".\\", "./", ".\\\\", ".//", "..\\", "..\\\\", "../", "..//"]                 # Define the leading patterns to exclude
+    for pattern in leading_patterns:                                                                  # Check if the filename starts with any of the leading patterns
+        if filename.startswith(pattern):
+            stripped_filename = filename[len(pattern):]                                               # Remove the leading pattern
+            break
+    else:
+        stripped_filename = filename                                                                  # If no leading pattern found, use the original filename
+
+    if any(char in INVALID_WINDOWS_FILENAME_CHARACTERS for char in stripped_filename):                # Perform the necessary processing on the stripped filename
+        stripped_filename = convert_a_filename(stripped_filename, silent_if_unchanged=True, silent_if_changed=True)
+
+    stripped_filename = stripped_filename.lstrip('.-')                                                 # Strip "." or "-" from the beginning of the filename
+    if  stripped_filename != filename:                                                                 # Restore the leading pattern, if it was stripped
+        stripped_filename  = filename[:len(filename) - len(stripped_filename)] + stripped_filename
+
+    return stripped_filename
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Public calls:
+def convert_a_string  (string_to_convert  ,silent_if_unchanged=False, silent_if_changed=False, silent=False): return just_convert_a_string(  string_to_convert,"string",silent_if_unchanged=silent_if_unchanged,silent_if_changed=silent_if_changed,silent=silent)
+def convert_a_filename(filename_to_convert,silent_if_unchanged=False, silent_if_changed=False, silent=False): return just_convert_a_string(filename_to_convert,"file"  ,silent_if_unchanged=silent_if_unchanged,silent_if_changed=silent_if_changed,silent=silent)
+
+def just_convert_a_string(string_to_convert,mode,silent_if_unchanged=False,silent_if_changed=False,silent=False):
     global DIE_ON_UNDECODEABLE_UNICODE_CHARACTER
     if __name__ != "__main__": DIE_ON_UNDECODEABLE_UNICODE_CHARACTER=False          #only die when being run, not when being imported
 
@@ -546,7 +615,7 @@ def just_convert_a_string(string_to_convert,mode,silent_if_unchanged=False,silen
         return ":)"
 
     romanized_string  = convert_to_ascii_filename_chracters(string_to_convert,mode)     #...which we then fix the same way we would fix our filenames
-    if silent or (silent_if_unchanged and string_to_convert == romanized_string):
+    if silent or (silent_if_unchanged and string_to_convert == romanized_string) or (silent_if_changed and string_to_convert != romanized_string):
         pass #don't primt
     else:
         primt(f"{Fore.RED}Old string: {string_to_convert}")
