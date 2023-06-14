@@ -45,6 +45,8 @@
 
         SETUP: To suppress user prompting: set AUTOMATIC_UNICODE_CLEANING=1
 
+        RECURSIVE: add "/s" to the end to recurse folders [in filemode only, obviously]
+
         MODE 1:  No      arguments  : Run with no arguments to cleanse everything in your existing folder of unicode characters
               :  "auto"  argument   : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Do this, but suppress confirmation prompts
         MODE 2: "file   <arguments>": Use "file"   as your first argument to cleanse the rest of the command line of unicode, as if it were a windows filename
@@ -106,6 +108,7 @@ import fix_unicode_filenames_every_char as everychar
 just_fix_windows_console()
 #init()
 
+RECURSE=False                                                               #Whether we are in recursive mode or not
 
 ############################ DEVELOPMENT CONFIGURATION ############################
 DIE_ON_UNDECODEABLE_UNICODE_CHARACTER = True
@@ -483,7 +486,51 @@ def clear_keyboard_buffer():
     while msvcrt.kbhit(): msvcrt.getch()
 
 
-def rename_files_in_current_directory(mode="file",automatic_mode=False):                             #defaults to file mode
+#def rename_files_in_current_directory_last_ver_before_recursion(mode="file",automatic_mode=False,recursive_mode=False):                 #defaults to file mode
+#    """Renames all files in a directory, replacing unicode characters."""
+#    global DRY_RUN, DEBUG_ANNOUNCE_FILENAMES
+#    any_files_found_to_rename_at_all = False
+#    do_it_for_real = True
+#    automatic      = False
+#    DRY_RUN        = False
+#    permission     = False
+#    directory      = sys.argv[1] if len(sys.argv) > 1 else '.'                  #get all the files in the current dir...
+#    for filename in os.listdir(directory):
+#        filename_for_primt = filename.encode('utf-8','ignore')
+#        if DEBUG_ANNOUNCE_FILENAMES: primt(f"{Fore.CYAN}{Style.BRIGHT}* Processing file {filename}...{Style.NORMAL}{Fore.WHITE}")
+#        new_name = convert_to_ascii_filename_chracters(filename,mode)           #this is where all the magic happens
+#
+#        if filename != new_name:
+#            any_files_found_to_rename_at_all = True
+#            if automatic_mode:
+#                automatic      = True
+#                do_it_for_real = True
+#                action_string  = "  Auto-Renamed"
+#            else:
+#                permission = ask_permission(filename, new_name)
+#                do_it_for_real = permission
+#                action_string  = "       Renamed" if permission is True else f"{Fore.RED}Did not rename"
+#            if DRY_RUN:
+#                do_it_for_real = False
+#
+#            old_file = os.path.join(directory, filename)
+#            new_file = os.path.join(directory, new_name)
+#
+#            new_new_file = last_minute_filename_cleanser(new_file)              #if we've put invalid values in our mapping table without having run our tests, it can be possible to have to cleanse one more time.  Also, some emoji libraries may decode into something invalid for filenames, and since we didn't test if all the decodings were valid, we must run it through a 2nd time for that possibility as well. It's unfortunate, but not expensive.
+#            if do_it_for_real:
+#                #os.rename(old_file, new_new_file)                              #would error if new folder already existed
+#                rename_folder_but_if_renamed_is_a_folder_that_already_exists_then_move_files_into_it_instead(old_file, new_new_file)
+#
+#            primt("\n")
+#            if automatic: primt(f"\t{Fore.YELLOW} Automatic Run: {mode}")
+#            if DRY_RUN:   primt(f"\t{Fore.YELLOW}" +   "Dry Run: ")
+#            primt(f"{Fore.GREEN}{Style.NORMAL}\t{action_string}:" + f"\t{Fore.LIGHTBLACK_EX}{old_file} " +
+#                  f"{Fore.CYAN}\n\t\t    to:" +  f"\t{Fore.GREEN}{new_new_file}{Style.NORMAL}\n\n\n")
+#    if not any_files_found_to_rename_at_all:
+#        primt(f"{Fore.RED}No files with unicode characters found.{Style.RESET_ALL}")
+
+
+def rename_files_in_current_directory(mode="file",automatic_mode=False,recursive_mode=False):
     """Renames all files in a directory, replacing unicode characters."""
     global DRY_RUN, DEBUG_ANNOUNCE_FILENAMES
     any_files_found_to_rename_at_all = False
@@ -491,38 +538,47 @@ def rename_files_in_current_directory(mode="file",automatic_mode=False):        
     automatic      = False
     DRY_RUN        = False
     permission     = False
-    directory      = sys.argv[1] if len(sys.argv) > 1 else '.'                  #get all the files in the current dir...
-    for filename in os.listdir(directory):
-        filename_for_primt = filename.encode('utf-8','ignore')
-        if DEBUG_ANNOUNCE_FILENAMES: primt(f"{Fore.CYAN}{Style.BRIGHT}* Processing file {filename}...{Style.NORMAL}{Fore.WHITE}")
-        new_name = convert_to_ascii_filename_chracters(filename,mode)           #this is where all the magic happens
+    directory      = sys.argv[1] if len(sys.argv) > 1 else '.'
 
-        if filename != new_name:
-            any_files_found_to_rename_at_all = True
-            if automatic_mode:
-                automatic      = True
-                do_it_for_real = True
-                action_string  = "  Auto-Renamed"
-            else:
-                permission = ask_permission(filename, new_name)
-                do_it_for_real = permission
-                action_string  = "       Renamed" if permission is True else f"{Fore.RED}Did not rename"
-            if DRY_RUN:
-                do_it_for_real = False
+    def process_directory(directory):
+        nonlocal any_files_found_to_rename_at_all
+        for filename in os.listdir(directory):
+            filename_for_primt = filename.encode('utf-8','ignore')
+            if DEBUG_ANNOUNCE_FILENAMES: primt(f"{Fore.CYAN}{Style.BRIGHT}* Processing file {filename}...{Style.NORMAL}{Fore.WHITE}")
+            new_name = convert_to_ascii_filename_chracters(filename,mode)
 
-            old_file = os.path.join(directory, filename)
-            new_file = os.path.join(directory, new_name)
+            if filename != new_name:
+                any_files_found_to_rename_at_all = True
+                if automatic_mode:
+                    automatic      = True
+                    do_it_for_real = True
+                    action_string  = "  Auto-Renamed"
+                else:
+                    permission = ask_permission(filename, new_name)
+                    do_it_for_real = permission
+                    action_string  = "       Renamed" if permission is True else f"{Fore.RED}Did not rename"
+                if DRY_RUN:
+                    do_it_for_real = False
 
-            new_new_file = last_minute_filename_cleanser(new_file)              #if we've put invalid values in our mapping table without having run our tests, it can be possible to have to cleanse one more time.  Also, some emoji libraries may decode into something invalid for filenames, and since we didn't test if all the decodings were valid, we must run it through a 2nd time for that possibility as well. It's unfortunate, but not expensive.
-            if do_it_for_real:
-                #os.rename(old_file, new_new_file)                              #would error if new folder already existed
-                rename_folder_but_if_renamed_is_a_folder_that_already_exists_then_move_files_into_it_instead(old_file, new_new_file)
+                old_file = os.path.join(directory, filename)
+                new_file = os.path.join(directory, new_name)
 
-            primt("\n")
-            if automatic: primt(f"\t{Fore.YELLOW} Automatic Run: {mode}")
-            if DRY_RUN:   primt(f"\t{Fore.YELLOW}" +   "Dry Run: ")
-            primt(f"{Fore.GREEN}{Style.NORMAL}\t{action_string}:" + f"\t{Fore.LIGHTBLACK_EX}{old_file} " +
-                  f"{Fore.CYAN}\n\t\t    to:" +  f"\t{Fore.GREEN}{new_new_file}{Style.NORMAL}\n\n\n")
+                new_new_file = last_minute_filename_cleanser(new_file)
+                if do_it_for_real:
+                    rename_folder_but_if_renamed_is_a_folder_that_already_exists_then_move_files_into_it_instead(old_file, new_new_file)
+
+                primt("\n")
+                if automatic: primt(f"\t{Fore.YELLOW} Automatic Run: {mode}")
+                if DRY_RUN:   primt(f"\t{Fore.YELLOW}" +   "Dry Run: ")
+                primt(f"{Fore.GREEN}{Style.NORMAL}\t{action_string}:" + f"\t{Fore.LIGHTBLACK_EX}{old_file} " +
+                      f"{Fore.CYAN}\n\t\t    to:" +  f"\t{Fore.GREEN}{new_new_file}{Style.NORMAL}\n\n\n")
+
+    if recursive_mode:
+        for root, dirs, files in os.walk(directory):
+            process_directory(root)
+    else:
+        process_directory(directory)
+
     if not any_files_found_to_rename_at_all:
         primt(f"{Fore.RED}No files with unicode characters found.{Style.RESET_ALL}")
 
@@ -675,12 +731,15 @@ def get_mode(always_use_automatic_mode=False):
     """Determines the current mode of the program based on the command-line arguments.
 
     Parameters:
-    argv (list): List of command-line arguments.
+        argv (list): List of command-line arguments.
 
     Returns:
-    str: The current mode of the program, either 'filename' or 'string' or 'test'.
+        str: The current mode of the program, either 'filename' or 'string' or 'test'.
+
+    Sets:
+        global variable RECURSE=True if we are in recursive mode
     """
-    global DEBUG_MODE_ARGV
+    global DEBUG_MODE_ARGV, RECURSE
     AUTOMATIC_MODE = False
 
     return_value = 'unknown'
@@ -697,6 +756,14 @@ def get_mode(always_use_automatic_mode=False):
 
     if always_use_automatic_mode: AUTOMATIC_MODE = True
 
+    for arg in sys.argv:
+        if arg.lower() != '/s':
+            recurse=False
+        else:
+            recurse=True
+            sys.argv.remove(arg)
+
+
     if len(sys.argv) > 1:
         arg1 = sys.argv[1].lower()
         if   arg1 in ['stringmode', 'string']: return_value = 'string'
@@ -712,15 +779,16 @@ def get_mode(always_use_automatic_mode=False):
             sys.exit(666)
 
     if DEBUG_MODE_ARGV: primt (f"{Fore.BLUE}* Running in {return_value} mode with arguments {sys.argv}.\n\tAUTOMATIC_MODE is {AUTOMATIC_MODE}")
-    return return_value, AUTOMATIC_MODE
+    return return_value, recurse, AUTOMATIC_MODE
 
 
 
 def main():
-    mode_name, mode_is_automatic = get_mode(always_use_automatic_mode=False)
+    mode_name, mode_is_recursive, mode_is_automatic = get_mode(always_use_automatic_mode=False)
 
     if len(sys.argv) == 1:
-        rename_files_in_current_directory(mode="file",automatic_mode=mode_is_automatic)       #MODE 1: Fix all files in the current folder, in filename mode
+        rename_files_in_current_directory(mode="file",automatic_mode=mode_is_automatic,       #MODE 1: Fix all files in the current folder, in filename mode
+                                                      recursive_mode=mode_is_recursive)
         sys.exit(0)
     elif mode_name == 'test':                                                                 #MODE 4: Prepare to translate internal testing string
         string_to_process = get_testing_string() + "\n\n\n TESTING STRING #2: \n\n\n" + everychar.ALMOST_EVERY_CHARACTER
@@ -790,19 +858,10 @@ unicode_to_ascii_custom_character_mapping = {
     '；' :   [';'] ,  # unicode semicolon
     '，' :   [','] ,  # unicode comma
     '。' :   ['.'] ,  # unicode full stop
-    'ï¼Ÿ':   ['?' , '_' ],  # unicode question mark
-    'ï½œ':   ['|' , '-' ],  # unicode pipe
-    'ï¼š' :   [':' , '- '],  # unicode colon
-    'ï¼š' :   [':' , '-' ],  # unicode colon
-    'â§¸' :   ['/' , '--'],  # unicode slash             [the slash doesn't render right in EditPlus but it's HUUUGE]
 
     ## characters that are problematic with command line processors
     '%' :   ['%' , 'pct'],  # percent sign               [substitution only needed for filenames]        #TODO make this configurable with config deleting this key
     '`' :   ["'" , "'"],    # backtick                  [2 of these in a filename can makes parsers think there is bad quoting]
-
-    ## charcters that other libraries will convert to invalid filenames if we don't handle that first
-    'Â¿' :   ['?'  , '_'     ],  # ASCII question mark for spanish which a later library would convert to invalid "?" otherwise
-    'Â½' :   ['1/2', 'Half ' ],  # ASCII 1/2 symbol
 
 
     # Emojis with ASCII equivalents: faces:
@@ -851,157 +910,45 @@ unicode_to_ascii_custom_character_mapping = {
 
 
     # Emojis with ASCII equivalents: hearts
-    "❤️":   ["<3", "(3"],     # {heart}
-    '💔':  ['</3', "(3_3"],     # Broken Heart
-    '💕': ['<3<3', "(3(3"],     # Two Hearts
-    '💖':   ['<3', "(3"],     # Sparkling Heart
-    "💗":  ["<3<3", "(3(3"],    # {growing heart}
-    "💙":   ["<3", "(3"],     # {blue heart}
-    "💚":   ["<3", "(3"],     # {green heart}
-    "💛":   ["<3", "(3"],     # {yellow heart}
-    "💜":   ["<3", "(3"],     # {purple heart}
-    "🖤":   ["<3", "(3"],     # {black heart}
-    "💝":   ["<3", "(3"],     # {heart with ribbon}
-    "💞":  ["<3<3", "(3(3"],    # {revolving hearts}
-    "💟":   ["<3", "(3"],     # {heart decoration}
-    "💌":   ["<3", "(3"],     # {love letter}
-    "❤️‍🩹": ["<3:)", "(3_)"],    # {mending heart}
-    "❣️":   ["<3!", "(3!"],    # {heart exclamation}
-    "❤️‍🔥": ["<3", "(3"],     # {heart on fire}
+    "❤️":   ["<3"  , "(3"],     # {heart}
+    '💔':   ['</3' , "(3_3"],   # Broken Heart
+    '💕':   ['<3<3', "(3(3"],   # Two Hearts
+    '💖':   ['<3'  , "(3"],     # Sparkling Heart
+    "💗":   ["<3<3", "(3(3"],   # {growing heart}
+    "💙":   ["<3"  , "(3"],     # {blue heart}
+    "💚":   ["<3"  , "(3"],     # {green heart}
+    "💛":   ["<3"  , "(3"],     # {yellow heart}
+    "💜":   ["<3"  , "(3"],     # {purple heart}
+    "🖤":   ["<3"  , "(3"],     # {black heart}
+    "💝":   ["<3"  , "(3"],     # {heart with ribbon}
+    "💞":   ["<3<3", "(3(3"],   # {revolving hearts}
+    "💟":   ["<3"  , "(3"],     # {heart decoration}
+    "💌":   ["<3"  , "(3"],     # {love letter}
+    "❤️‍🩹": ["<3:)", "(3_)"],   # {mending heart}
+    "❣️":    ["<3!", "(3!"],    # {heart exclamation}
+    "❤️‍🔥":  ["<3" , "(3"],     # {heart on fire}
 
 
     # Emojis with ASCII equivalents: faces:
-    "😝": ["XP", "XP"],       # {squinting face with tongue}
-    "😤": [">:(", "{face with steam from nose}"],      # {steam from nose}
-    "😛": [":p", "{sticking out tongue}"],       # {sticking out tongue}
-    "😊": [":)", "=)"],       # {smiling face with smiling_eyes}
-    "😏": [";)", "{smirking}"],       # {smirking_face}
-    "😓": ["^_^;", "{downcast face with sweat},"],     # {sweat face aka downcast_face_with_sweat}
-    "😂": ["XD", "XD"],       # {tears of joy face}
-    "😫": [":/", "{tired face}"],       # {tired_face}
-    "😒": [":/", "{unamused face}"],       # {unamused_face}
-    "😩": ["):", "{weary face}"],       # {weary_face}
-    "😜": [";p", "{winking face with tongue}"],       # {winking face with tongue}
-    "😟": ["/:", "{worried face}"],       # {worried_face}
-    "😉": [";)", ";)"],       # {winking_face} (with tongue)
+    "😝":    ["XP", "XP"],       # {squinting face with tongue}
+    "😤":    [">:(", "{face with steam from nose}"],      # {steam from nose}
+    "😛":    [":p", "{sticking out tongue}"],       # {sticking out tongue}
+    "😊":    [":)", "=)"],       # {smiling face with smiling_eyes}
+    "😏":    [";)", "{smirking}"],       # {smirking_face}
+    "😓":    ["^_^;", "{downcast face with sweat},"],     # {sweat face aka downcast_face_with_sweat}
+    "😂":    ["XD", "XD"],       # {tears of joy face}
+    "😫":    [":/", "{tired face}"],       # {tired_face}
+    "😒":    [":/", "{unamused face}"],       # {unamused_face}
+    "😩":    ["):", "{weary face}"],       # {weary_face}
+    "😜":    [";p", "{winking face with tongue}"],       # {winking face with tongue}
+    "😟":    ["/:", "{worried face}"],       # {worried_face}
+    "😉":    [";)", ";)"],       # {winking_face} (with tongue)
 
 
-
-    'ï¼':    ['!'],   # unicode exclamation mark
-    'ï¼›' :    [';'],   # unicode semicolon
-    'ï¼Œ' :    [','],   # unicode comma
-    'ã€‚' :    ['.'],   # unicode period
-
-    'ï¼ˆ ':    ['('],   #   unicode open  paren
-    'ï¼‰' :    [')'],   #   unicode close paren
-    'â½' :    ['('],   #   unicode open  paren
-    'â¾' :    [')'],   #   unicode close paren
-    'â‚'	:    ['('],   #   Subscript Left  Parenthesis
-    'â‚Ž'	:    [')'],   #   Subscript Right Parenthesis
-    'ï¹™' :    ['('],   #  unicode open  paren
-    'ï¹š' :    [')'],   #  unicode close paren
-
-    'ï¼½' :    [']'],   #   unicode right bracket
-    'ã€' :    ['['],   #   unicode left  bracket
-    'ã€‘' :    [']'],   #   unicode right bracket
-    'ã€”' :    ['['],   #   unicode left  bracket
-    'ï¼»' :    ['['],   #   unicode left  bracket
-    'ã€•' :    [']'],   #   unicode right bracket
-    'ï¹':     ['['],  #   unicode left  bracket
-    'ï¹ž':     [']'],  #   unicode right bracket
-
-    'ï½›' :    ['{'],   #   unicode left  brace
-    'ï½' :    ['}'],   #   unicode right brace
-    'ï¹›':     ['{'],  #   unicode left  brace
-    'ï¹œ':     ['}'],  #   unicode right brace
-
-    'ã€ˆ' :    ['<','['],   #  unicode    less-than
-    'ã€‰' :    ['>',']'],   #  unicode greater-than
-    'âŒ©' :    ['<','['],   #   unicode    less-than
-    'âŒª' :    ['>',']'],   #   unicode greater-than
-    '〈' :      ['<','['],   # '<',   #  unicode    less-than
-    '〉' :      ['>',']'],   # '>',   #  unicode greater-than
-    '〈' :       ['<','['],   #'<',   #   unicode    less-than
-    '〉' :       ['>',']'],   #'>',   #   unicode greater-than
-
-    'ï½Ÿ' :   ['(('],   #   unicode double left  paren
-    'ï½ ' :   ['))'],   #   unicode double right paren
-    'ã€–':   ['[('],   #   unicode left   combo-paren/bracket
-    'ã€—':   [')]'],   #   unicode right  combo-paren/bracket
-    'ã€š':   ['[['],   #   unicode double left  bracket
-    'ã€›':   [']]'],   #   unicode double right bracket
-    'ã€˜':   ['[['],   #   unicode double left  bracket
-    'ã€™':   [']]'],   #   unicode double right bracket
-    'ã€Š' :   ['<<','[['],   #   unicode double     less-than
-    'ã€‹' :   ['>>',']]'],   #   unicode double  greater-than
-    'áš›' :   [ '>-',']-'],  #
-    'ášœ' :   [ '-<','-['],  #
-
-    'ê§':  ['(('],   #javanese left rereggan
-    'ê§‚':  ['))'],   #javanese right rereggan
-    'ã€Ž' :   ['['] ,   #\
-    'ã€Œ' :   ['['] ,   # \
-    'ï½¢' :   ['['] ,   #  \____ used to think of these as "F" and "J" but after seeing them in anime videos a lot, realized they were brackets
-    'ã€' :   [']'] ,   #  /
-    'ã€' :   [']'] ,   # /
-    'ï½£' :   [']'] ,   #/
-
-
-    'Ï€' :   ['Pi'],   #decent
-
-    'â±'	:   ['^i'], 	#Superscript Latin Small Letter I
-    'â¿'	:   ['^n'], 	#Superscript Latin Small Letter N
-    'â°'	:   ['^o'], 	#Superscript Zero
-    'Â¹' :   ['^1'],   #Superscript 2 which is upper-ASCII and not actually unicode
-    'Â²' :   ['^2'],   #Superscript 2 which is upper-ASCII and not actually unicode
-    'â´'	:   ['^4'], 	#Superscript Four
-    'âµ'	:   ['^5'], 	#Superscript Five
-    'â¶'	:   ['^6'], 	#Superscript Six
-    'â·'	:   ['^7'], 	#Superscript Seven
-    'â¸'	:   ['^8'], 	#Superscript Eight
-    'â¹'	:   ['^9'], 	#Superscript Nine
-    'âº'	:   [ '+'], 	#Superscript Plus Sign
-    'â»'	:   [ '-'], 	#Superscript Minus
-    'â¼'	:   [ '='], 	#Superscript Equals Sign
-    'â‚€'	:  ['(0)'], 	#Subscript Zero
-    'â‚'	:  ['(1)'], 	#Subscript One
-    'â‚‚'	:  ['(2)'], 	#Subscript Two
-    'â‚ƒ'	:  ['(3)'], 	#Subscript Three
-    'â‚„'	:  ['(4)'], 	#Subscript Four
-    'â‚…'	:  ['(5)'], 	#Subscript Five
-    'â‚†'	:  ['(6)'], 	#Subscript Six
-    'â‚‡'	:  ['(7)'], 	#Subscript Seven
-    'â‚ˆ'	:  ['(8)'], 	#Subscript Eight
-    'â‚‰'	:  ['(9)'], 	#Subscript Nine
-    'â‚Š'	:  ['(+)'], 	#Subscript Plus Sign
-    'â‚‹'	:  ['(-)'], 	#Subscript Minus
-    'â‚Œ'	:  ['(=)'], 	#Subscript Equals Sign
-    'â‚”'	:['(schwa)'], #Latin Subscript Small Letter Schwa
-    'â‚'	:   ['(a)'], 	#Latin Subscript Small Letter A
-    'â‚‘'	:   ['(e)'],  #Latin Subscript Small Letter E
-    'â‚’'	:   ['(o)'], 	#Latin Subscript Small Letter O
-    'â‚“'	:   ['(x)'], 	#Latin Subscript Small Letter X
-    'â‚•'	:   ['(h)'], 	#Latin Subscript Small Letter H     [doesn't render in EditPlus right so i'm not positive this is it]
-    'â‚–'	:   ['(k)'], 	#Latin Subscript Small Letter K     [doesn't render in EditPlus right so i'm not positive this is it]
-    'â‚—'	:   ['(l)'], 	#Latin Subscript Small Letter L     [doesn't render in EditPlus right so i'm not positive this is it]
-    'â‚˜'	:   ['(m)'], 	#Latin Subscript Small Letter M     [doesn't render in EditPlus right so i'm not positive this is it]
-    'â‚™'	:   ['(n)'], 	#Latin Subscript Small Letter N     [doesn't render in EditPlus right so i'm not positive this is it]
-    'â‚š'	:   ['(p)'], 	#Latin Subscript Small Letter P     [doesn't render in EditPlus right so i'm not positive this is it]
-    'â‚›'	:   ['(s)'], 	#Latin Subscript Small Letter S     [doesn't render in EditPlus right so i'm not positive this is it]
-    'â‚œ'	:   ['(t)'], 	#Latin Subscript Small Letter T     [doesn't render in EditPlus right so i'm not positive this is it]
-
-
-    'à¼¼ à¼½':  ['/\\','^'] ,   #a fairly good approximation
-
-    'âˆž' :['[Inf]'],   #tempted to make "8", but that would lose too much meaning
-
-
-    'âˆ‘' :      ['Sum='],   #quite the stretch
-    'âˆ«' : ['Integral='],   #quite the stretch
-
-    'à¼º':    ['@:','@@'],  #a huge stretch, this barely even looks like that
-    'à¼»':    [':@','@@'],  #a huge stretch, this barely even looks like that
-
+    '〈' :    ['<','['],   # '<',   #  unicode    less-than
+    '〉' :    ['>',']'],   # '>',   #  unicode greater-than
+    '〈' :    ['<','['],   #'<',   #   unicode    less-than
+    '〉' :    ['>',']'],   #'>',   #   unicode greater-than
 
     '｟' :   '((',   #   unicode double left  paren
     '｠' :   '))',   #   unicode double right paren
@@ -1011,13 +958,11 @@ unicode_to_ascii_custom_character_mapping = {
     '〛':   ']]',   #   unicode double right bracket
     '〘':   '[[',   #   unicode double left  bracket
     '〙':   ']]',   #   unicode double right bracket
-    '《' :   ['<<','[['],   #   unicode double     less-than
-    '》' :   ['>>',']]'],   #   unicode double  greater-than
-    '᚛' :   ['>-',')-'],
-    '᚜' :   ['-<','-('],
-
+    '《' :    ['<<','[['],   #   unicode double     less-than
+    '》' :    ['>>',']]'],   #   unicode double  greater-than
+    '᚛' :    ['>-',')-'],
+    '᚜' :    ['-<','-('],
     'π' :   'Pi',   #decent
-
     'ⁱ'	:   '^i', 	#Superscript Latin Small Letter I
     'ⁿ' :   '^n',   #Superscript n which is upper-ASCII and not actually unicode \____ might be the same chracter really
     'ⁿ'	:   '^n', 	#Superscript Latin Small Letter N                            /
@@ -1081,329 +1026,93 @@ unicode_to_ascii_custom_character_mapping = {
     #'༻':    [':@'],  #a huge stretch, this barely even looks like that
 
 
-    # Emojis with ASCII equivalents: faces:
-    "ðŸ˜°": ['(@_@)'],   # anxious face with sweat
-    "ðŸ˜§": [":|", "D8"],    # anguished face
-    "ðŸ˜ ": ["):<", "x_x"],   # angry face
-    "ðŸ˜²": [":O", "O_O"],    # astonished face
-    "ðŸ˜": ["^_^","{beaming face with smiling eyes}"],          # beaming face with smiling eyes
-    "ðŸ˜–": ["o_O"],          # confounded face
-    "ðŸ˜•": ["o_O"],          # confused face
-    "ðŸ˜¢": [")':", ";_;"],   # crying face
-    "ðŸ˜­": [")':", ";_;"],   # loudly crying face
-    "ðŸ˜“": ['^._.^;'],       # downcast face with sweat
-    "ðŸ˜ˆ": [">;)", "XD"],   # devil smiling
-    "ðŸ˜ž": ["):", ")8"],    # disappointed face
-    "ðŸ˜‘": ["-_-"],          # expressionless face
-    "ðŸ˜®": [":o", "O_O"],    # face with open mouth
-    "ðŸ˜¤": [">:(", "8("],   # face with steam from nose
-    "ðŸ˜¨": [":o", "8o"],    # fearful face
-    "ðŸ˜³": [":$", "O_O"],    # flushed face
-    "ðŸ˜¦": ["):", ")8"],    # frowning face with open mouth
-    "ðŸ˜¬": ["D:", "D-"],     # grimacing face
-    "ðŸ˜€": [":)", "=)"],     # grinning face
-    "ðŸ˜ƒ": [":D", "=D"],     # grinning face with big eyes
-    "ðŸ˜„": ["XD"],           # grinning face with smiling eyes
-    "ðŸ˜…": ["^_^'","{grinning face with sweat}"],         # grinning face with sweat
-    "ðŸ˜†": ["X'D", "X'D"],   # grinning squinting face
-    "ðŸ˜‡": ["O:)", "O8)"],   # halo face
-    "ðŸ˜¯": [":o", "8o"],    # hushed face
-    "ðŸ˜—": [":*", "xoxo"],    # kissing face
-    "ðŸ˜˜": [":*", "xoxo"],    # kiss blowing face
-    "ðŸ˜™": [":*", "8)xoxo"],    # kissing face with smiling eyes
-    "ðŸ˜š": ["XOXO"],         # kissing face with closed eyes
-    "ðŸ˜”": ["):", ")8"],    # pensive face
-    "ðŸ˜£": [">.<", "{persevering face}"],    # persevering face
-    "ðŸ˜¡": ["):", ")8"],   # pouting face
-    "ðŸ˜¥": [")':", ")8"],   # sad but relieved face
-    "ðŸ˜±": [":O", "O_O"],    # screaming in fear
-    "ðŸ˜ª": ["X|", "zzz"],    # sleepy face
-    "ðŸ™‚": [":)", "=)"],     # slightly smiling face
-    "ðŸ˜": ["<3_<3", "{smiling face with heat eyes}"],  # smiling face with heart eyes
-    "ðŸ˜Ž": ["B-)", "B)"],    # smiling face with sunglasses
-    "ðŸ˜": ["X'P", "X'P"],       # {squinting face with tongue}
-    "ðŸ˜›": [":p", "8p"],       # {sticking out tongue}
-    "ðŸ˜Š": [":)", "=)"],       # {smiling face with smiling_eyes}
-    "ðŸ˜": [";)", "^)"],       # {smirking_face}
-    "ðŸ˜‚": ["XD", "XD"],       # {tears of joy face}
-    #"ï¿½": [":/", "T_T"],       # {tired_face}
-    "ðŸ˜«": ["{tired face}"  ,],
-    "ðŸ˜’": [":/", "-_-"],       # {unamused_face}
-    "ðŸ˜©": ["):", "-_-"],       # {weary_face}
-    "ðŸ˜œ": [";p", ";p"],       # {winking face with tongue}
-    "ðŸ˜Ÿ": [":/", "=O"],       # {worried_face}
-    "ðŸ˜‰": [";p"],            # {winking_face} (with tongue)
-    "ðŸ¤­": ["{face with hand over mouth}",],
-
-    # Emojis with ascii equivalents: hearts
-    "ðŸ’˜":  ["--<3-->","{heart with arrow}"],    # {heart with an arrow}
-    "â™¡":   ["<3", "(3"],     # {heart}
-    "ðŸ¤":   ["<3", "(3"],     # {heart}
-    "â¤ï¸":   ["<3", "(3"],     # {heart}
-    'ðŸ’”':  ['</3', "(3_3"],     # Broken Heart
-    'ðŸ’•': ['<3<3', "(3(3"],     # Two Hearts
-    'ðŸ’–':   ['<3', "(3"],     # Sparkling Heart
-    "ðŸ’—":  ["<3<3", "(3(3"],    # {growing heart}
-    "ðŸ–¤":   ["<3", "(3"],     # {black heart}
-    "ðŸ’›":   ["<3", "(3"],     # {yellow heart}
-    "ðŸ§¡":   ["<3", "(3"],     # {orange heart}
-    "ðŸ’š":   ["<3", "(3"],     # {green heart}
-    "ðŸ’™":   ["<3", "(3"],     # {blue heart}
-    "ðŸ’œ":   ["<3", "(3"],     # {purple heart}
-    "ðŸ’":   ["<3", "(3"],     # {heart with ribbon}
-    "ðŸ’ž":  ["<3<3", "(3(3"],    # {revolving hearts}
-    "ðŸ’Ÿ":   ["<3", "(3"],     # {heart decoration}
-    "ðŸ’Œ":   ["<3", "(3"],     # {love letter}
-    "â¤ï¸â€ðŸ©¹": ["<3:)", "(3_)"],    # {mending heart}
-    "â£ï¸":   ["<3!", "(3!"],    # {heart exclamation}
-    "â¤ï¸â€ðŸ”¥": ["<3", "(3"],     # {heart on fire}
-
-
-    # Emojis with descriptions: faces & human stuff:
-    "ðŸ˜Œ"   :   ["{phew!}"       ,],  # {relieved_face}
-    "ðŸ‘‹"   :   ["{waving hand}" ,],
-    'ðŸŽ…'   : ['{SANTA}',],       # emoji: Santa Claus
-    'ðŸ’ƒ': ['{DANCER}',],      # emoji: Woman Dancing
-    'ðŸ’€': ['{SKULL}',],       # emoji: Skull
-    'ðŸ’©': ['{POOP}',],        # emoji: Pile of Poo
-    'ðŸ¥°': ['{feeling-loved face}',],
-    'ðŸ¤‘': ['{money face}',],
-
-    # Emojis with descriptions: small objects
-    "âŒš"   :   ["{watch}"       ,],
-    "ðŸŽ"   :   ["{red apple}"   ,],
-    'ðŸ‰'   :   ['{WATERMELON}'  ,],  # emoji: Watermelon
-    'ðŸ‘‘'   :   ['{CROWN}'       ,],  # emoji: Crown
-    'ðŸ“±'    :   ['{MOBILE}'      ,],  # emoji: Mobile Phone
-
-    # Emojis with descriptions: medium objects
-    'ðŸ‘»': ['{GHOST}',],       # emoji: Ghost
-
-    # Emojis with descriptions: large objects
-    "ðŸš—"    :   ["{automobile}"  ,],
-
-    # Emojis with descriptions: stellar objects
-    "ðŸŒ"    :   ["{earth}"       ,],
-    "â˜€ï¸"    :   ["{sun}"         ,],
-
-    # even more:
-    'ðŸ‘€': ['[o o]',], #'{eyes}',  # ASCII: [o o]
-    'ðŸ‘': ['{clapping}',],  # ASCII: \o/ \o/
-    'ðŸ‘“': ['{glasses}',],  # ASCII: 8-)
-    'ðŸŒ™': ['{crescent moon}',],  # ASCII: c)
-    'â˜”': ['{umbrella with rain drops}',],  # ASCII: /\_/\
-    'âœ¨': ['{sparkles}',],  # ASCII: * *
-    'ðŸŽ„': ['{christmas tree}',],  # ASCII: /_\
-    'ðŸŽ‚': ['{birthday cake}',],  # ASCII: [*]
-    'ðŸŽˆ': ['{balloon}',],  # ASCII: o
-    'ðŸŽµ': ['â™ªâ™ª',],                #surprisingly, this is o.g. 128-char ascii and totally valid
-    'ðŸŒˆ': ['{rainbow}',],  # ASCII: ~~~~
-    'â­':  ['*','x'],  # ASCII: *
-    'â„ï¸': ['(*)','(x)'],  # ASCII: *
-    'ðŸŒŸ': ['{*}','{x}'],  # ASCII: * *
-    'âœ¿': ['{flower}',],  # ASCII: @-@
-    'ðŸ„': ['{mushroom}',],  # ASCII: 0+=
-    'ðŸŒ¼': ['{blossom}',],  # ASCII: (@)
-    'ðŸŒ¸': ['{cherry blossom}',],  # ASCII: (*)
-    'ðŸŒ»': ['{sunflower}',],  # ASCII: (")
-    'ðŸŒ¿': ['{herb}',],  # ASCII: %%%%
-    'ðŸ€': ['{4-leaf clover}',],  # ASCII: **^^
-    'ðŸŒ·': ['{tulip}',],  # ASCII: @)
-    'ðŸ': ['{maple leaf}',],  # ASCII: ~~~~
-    'ðŸ’«': ['{dizzy}',],  # ASCII: @-@
-    'ðŸŒ¹': ["@}--'-",],  # ASCII: @) rose
-    'ðŸŒº': ['{hibiscus}',],  # ASCII: @@
-    'ðŸŒ´': ['{palm tree}',],  # ASCII: #
-    'ðŸŒ²': ['{evergreen tree}',],  # ASCII: T
-    'ðŸŒ³': ['{deciduous tree}',],  # ASCII: T
-    'ðŸŒµ': ['{cactus}',],  # ASCII: ^^^
-    'ðŸ‚': ['{fallen leaf}',],  # ASCII: ~~~
-    'ðŸƒ': ['{leaf fluttering in wind}',],  # ASCII: ~~~
-    'ðŸŒŠ': ['{water wave}',],  # ASCII: ~~~
-    'ðŸ”¥': ['{fire}',],  # ASCII: ~~~~
-    'ðŸ’§': ['{droplet}',],  # ASCII: .
-    'ðŸ’¦': ['{sweat droplets}',],  # ASCII: . .
-    'ðŸ’¨': ['{dashing away}',],  # ASCII: @@
-    'â˜ï¸': ['{cloud}',],  # ASCII: ~~~
-    'â›…': ['{sun behind cloud}',],  # ASCII: â˜€~~~
-    'ðŸŒ«ï¸': ['{fog}',],  # ASCII: ~~~
-    'ðŸŒªï¸': ['{tornado}',],  # previously added this twice so wonder if this is working properly or not
-    'ðŸŒ§ï¸': ['{cloud with rain}',],  # ASCII: ~~~
-    'âš¡': ['{high voltage}',],  # ASCII: @@
-    'ðŸŒ€': ['{cyclone}',],  # ASCII: @-@
-    'ðŸŒ': ['{foggy}',],  # ASCII: ~~~
-    'ðŸŒ‚': ['{closed umbrella}'],  # ASCII: ---)
-    'ðŸ’°': ['{money bag}'],
-    'ðŸ’µ': ['{paper money}'],
-
-    #pointing
-    'ðŸ‘†'    : ['^^----','{index finger pointing up}',],  # ASCII: ^
-    'ðŸ‘‡'    : ['vv----','{index finger pointing down}',],  # ASCII: v
-    'ðŸ‘ˆ'   : ['<-----','{index finger pointing left}',],  # ASCII: <
-    'ðŸ‘‰'   : ['----->','{index finger pointing right}',],  # ASCII: >
-    'â˜ï¸'    : ['{index pointing up}',],  # ASCII: ^
-    'ðŸ–•'    : ['{middle finger}',],  # ASCII: FU
-    'ðŸ¤ž'    : ['{crossed fingers}',],  # ASCII: @@
-    'ðŸ––'    : ['{vulcan salute}',],  # ASCII: V
-    'ðŸ¤˜'    : ['\\m/','{metal sign}'],  # ASCII: \m/ {sign of the horns}
-    'ðŸ¤™'    : ['{call me hand}',],  # ASCII: C
-    'ðŸ‘Œ'    : ['Okay!',],  # ASCII: OK
-    'ðŸ‘'    : ['{thumbs up}',],  # ASCII: Y
-    'ðŸ‘Ž'    : ['{thumbs down}',],  # ASCII: N
-    'âœŒï¸'     : ['{peace/victory sign}','{peace [or victory] hand sign}'],  #apparently editplus isn't encoding this character well enough to work like this
-    '\u270c': ['{peace/victory sign}','{peace [or victory] hand sign}'],  #...so we really should be specifying these like this {sigh}. Multiple keys would be better than this duplicatoin.
-    'ðŸ¤Ÿ'    : ['<3','{heart}'],  # ASCII: ILU
-    'ðŸ¤'   : ['{pinching hand}',],  # ASCII: <0>
-    'â˜®ï¸':['{peace symbol}',],   #this doesn't seem to catch it, it seems to be double-wide and caught by unicode and returned as "{peace_symbol}"
 
     #regional indicator codes that are basically just subscript letters
-    "ðŸ‡¦":     ["A",],
-    "ðŸ‡§":    ["B",],
-    "ðŸ‡¨":    ["C",],
-    "ðŸ‡©":    ["D",],
-    "ðŸ‡ª":    ["E",],
-    "ðŸ‡«":     ["F",],
-    "ðŸ‡­":    ["H",],
-    "ðŸ‡¯":    ["J",],
-    "ðŸ‡°":    ["K",],
-    "ðŸ‡±":    ["L",],
-    "ðŸ‡²":   ["M",],
-    "ðŸ‡³":    ["N",],
-    "ðŸ‡´":    ["O",],
-    "ðŸ‡µ":    ["P",],
-    "ðŸ‡¶":    ["Q",],
-    "ðŸ‡·":    ["R",],
-    "ðŸ‡¸":    ["S",],
-    "ðŸ‡¹":    ["T",],
-    "ðŸ‡º":    ["U",],
-    "ðŸ‡½":    ["X",],
-    "ðŸ‡¿":    ["Z",],
-
-    '\uE0048':["H"],                #Latin Capital Letter H
-    '\ue0069':["i"],                #Latin Small Letter I
-    '\uE005A':["Z"],                #Latin Capital Letter Z
-    '\ue006c':["l"],                #Latin Small Letter L
-    '\uE004D':["M"],                #Latin Capital Letter M
-    '\uE004C':["L"],                #Latin Capital Letter L
-    '\ue0061':["a"],                #Latin Small Letter a
-    '\uE0057':["W"],                #Latin Capital Letter W
-    '\ue0063':["c"],                #Latin Small Letter C
-    '\uE0047':["G"],                #Latin Capital Letter G
-    '\ue006d':["m"],                #Latin Small Letter M
-    '\ue0064':["d"],                #Latin Small Letter D
-    '\ue0067':["g"],                #Latin Small Letter G
-    '\uE0051':["Q"],                #Latin Capital Letter Q
-    '\uE0045':["E"],                #Latin Capital Letter E
-    '\uE004A':["J"],                #Latin Capital Letter J
-    '\ue0070':["p"],                #Latin Small Letter P
-    '\uE0052':["R"],                #Latin Capital Letter R
-    '\uE0050':["P"],                #Latin Capital Letter P
-    '\ue0078':["x"],                #Latin Small Letter X
-    '\uE0056':["V"],                #Latin Capital Letter V
-    '\ue007a':["z"],                #Latin Small Letter Z
-    '\ue0066':["f"],                #Latin Small Letter F
-    '\uE0058':["X"],                #Latin Capital Letter X
-    '\ue0076':["v"],                #Latin Small Letter V
-    '\uE0059':["Y"],                #Latin Capital Letter Y
-    '\ue0065':["e"],                #Latin Small Letter E
-    '\uE0049':["I"],                #Latin Capital Letter I
-    '\uE0055':["U"],                #Latin Capital Letter U
-    '\ue0073':["s"],                #Latin Small Letter S
-    '\uE0053':["S"],                #Latin Capital Letter S
-    '\ue006f':["o"],                #Latin Small Letter O
-    '\ue0071':["q"],                #Latin Small Letter Q
-    '\ue006b':["k"],                #Latin Small Letter K
-    '\uE004E':["N"],                #Latin Capital Letter N
-    '\ue0077':["w"],                #Latin Small Letter W
-    '\uE0054':["T"],                #Latin Capital Letter T
-    '\uE004B':["K"],                #Latin Capital Letter K
-    '\ue0072':["r"],                #Latin Small Letter R
-    '\uE0044':["D"],                #Latin Capital Letter D
-    '\ue0068':["h"],                #Latin Small Letter H
-    '\uE004F':["O"],                #Latin Capital Letter O
-    '\ue006e':["n"],                #Latin Small Letter N
-    '\ue0079':["y"],                #Latin Small Letter Y
-    '\ue0075':["u"],                #Latin Small Letter U
-    '\uE0041':["a"],                #Latin Capital Letter a
-    '\uE0042':["B"],                #Latin Capital Letter B
-    '\uE0046':["F"],                #Latin Capital Letter F
-    '\uE0043':["C"],                #Latin Capital Letter C
-    '\ue0062':["b"],                #Latin Small Letter B
-    '\ue006a':["j"],                #Latin Small Letter J
-    '\ue0074':["t"],                #Latin Small Letter T           #failed as hash key
+    '\uE0048'    :["H"],            #Latin Capital Letter H
+    '\ue0069'    :["i"],            #Latin Small Letter I
+    '\uE005A'    :["Z"],            #Latin Capital Letter Z
+    '\ue006c'    :["l"],            #Latin Small Letter L
+    '\uE004D'    :["M"],            #Latin Capital Letter M
+    '\uE004C'    :["L"],            #Latin Capital Letter L
+    '\ue0061'    :["a"],            #Latin Small Letter a
+    '\uE0057'    :["W"],            #Latin Capital Letter W
+    '\ue0063'    :["c"],            #Latin Small Letter C
+    '\uE0047'    :["G"],            #Latin Capital Letter G
+    '\ue006d'    :["m"],            #Latin Small Letter M
+    '\ue0064'    :["d"],            #Latin Small Letter D
+    '\ue0067'    :["g"],            #Latin Small Letter G
+    '\uE0051'    :["Q"],            #Latin Capital Letter Q
+    '\uE0045'    :["E"],            #Latin Capital Letter E
+    '\uE004A'    :["J"],            #Latin Capital Letter J
+    '\ue0070'    :["p"],            #Latin Small Letter P
+    '\uE0052'    :["R"],            #Latin Capital Letter R
+    '\uE0050'    :["P"],            #Latin Capital Letter P
+    '\ue0078'    :["x"],            #Latin Small Letter X
+    '\uE0056'    :["V"],            #Latin Capital Letter V
+    '\ue007a'    :["z"],            #Latin Small Letter Z
+    '\ue0066'    :["f"],            #Latin Small Letter F
+    '\uE0058'    :["X"],            #Latin Capital Letter X
+    '\ue0076'    :["v"],            #Latin Small Letter V
+    '\uE0059'    :["Y"],            #Latin Capital Letter Y
+    '\ue0065'    :["e"],            #Latin Small Letter E
+    '\uE0049'    :["I"],            #Latin Capital Letter I
+    '\uE0055'    :["U"],            #Latin Capital Letter U
+    '\ue0073'    :["s"],            #Latin Small Letter S
+    '\uE0053'    :["S"],            #Latin Capital Letter S
+    '\ue006f'    :["o"],            #Latin Small Letter O
+    '\ue0071'    :["q"],            #Latin Small Letter Q
+    '\ue006b'    :["k"],            #Latin Small Letter K
+    '\uE004E'    :["N"],            #Latin Capital Letter N
+    '\ue0077'    :["w"],            #Latin Small Letter W
+    '\uE0054'    :["T"],            #Latin Capital Letter T
+    '\uE004B'    :["K"],            #Latin Capital Letter K
+    '\ue0072'    :["r"],            #Latin Small Letter R
+    '\uE0044'    :["D"],            #Latin Capital Letter D
+    '\ue0068'    :["h"],            #Latin Small Letter H
+    '\uE004F'    :["O"],            #Latin Capital Letter O
+    '\ue006e'    :["n"],            #Latin Small Letter N
+    '\ue0079'    :["y"],            #Latin Small Letter Y
+    '\ue0075'    :["u"],            #Latin Small Letter U
+    '\uE0041'    :["a"],            #Latin Capital Letter a
+    '\uE0042'    :["B"],            #Latin Capital Letter B
+    '\uE0046'    :["F"],            #Latin Capital Letter F
+    '\uE0043'    :["C"],            #Latin Capital Letter C
+    '\ue0062'    :["b"],            #Latin Small Letter B
+    '\ue006a'    :["j"],            #Latin Small Letter J
+    '\ue0074'    :["t"],            #Latin Small Letter T           #failed as hash key
     'code ue0074':["t"],            #Latin Small Letter T
 
 
     #the most puzzling thing i've found - this character was completely invisible in Windows Explorer file view (Windows 10, 2023/05/28)
     #as well as not copy-pastable (unlike all the others), so we couldn't even google it
     #it is called "ZERO WIDTH JOINER" and used in Indian languages: https://www.fileformat.info/info/unicode/char/200d/index.htm
-    '\u200d': ['|',' '],  #deciding what to do with this character was difficult
+    '\u200d     ': ['|',' '],  #deciding what to do with this character was difficult
 
     #these mfs exposed a python bug where certain characters aren't usable as keys in a dictionary
-        '\u1f1fe': ["Y",],                      #python bug?! - can't use this as a dictionary table key?!?! hash key failure?!?!
+        '\u1f1fe': ["Y",],
     'code u1f1fe': ["Y",],                          #workaround
-        '\u008dÂ' : ["{reverse line feed}",],    #python bug?! - can't use this as a dictionary table key?!?! hash key failure?!?!
     'code u008d' : ["{reverse line feed}",],        #workaround
 
 
 
-    #2023 stuff that breaks our shit in the wild
-    'â™«': ['{music}','{music}',],                         #metaflac can't work with filenames that have this character in them so we're treating this harshly
-    "'": ["'"],                             #is this a unicode apostrophe?
-    "ðŸ”ž":     ["{adults only!}",],
-    "ðŸ’":     ["{cherry}",],
-    "ðŸ‘™":     ["{bikini}",],
-    "ðŸ“":     ["{pushpin}",],
-    "ðŸ†":     ["{eggplant}",],
-    "ðŸ‘":     ["{peach}",],
-    "ðŸ³":     ["{waving flag}",],
-    "ðŸ’‹":     ["{lips}",],
-    "ðŸ’„":     ["{lipstick}",],
-    "ðŸ‘¸":     ["{princess}",],
-    "â˜†":     ["*","{star}",],
-    "âœ§":     ["*","{star}",],
-    "ðŸ—":     ["{key}",],
-    "ðŸ•¸":     ["{spider web}",],
-    "ðŸš€":     ["{rocket ship}",],
-    "ðŸ":     ["{goat}",],
-    "ðŸ†":     ["{trophy}",],
-    "ðŸ™":     ["{octopus}",],
-    "ðŸ’¥":     ["{collision symbol}",],
-    "ðŸ¥":     ["{hospital}",],
-    "ðŸ¦‡":     ["{bat}",],
-    "â™›":     ["{crown}",],
-    "ðŸ»":     ["{pale skin tone}",],
-    "ðŸ¥€":     ["{wilted flower}",],
-    "ðŸ’Ž":     ["{gem stone}",],
-    "ðŸŽ€":     ["{ribbon}",],
-    "ðŸŒ¤":     ["{white sun with small cloud}",],
-    "ðŸ¦Š":     ["{fox face}",],
-    "ðŸ¼":     ["{cream white skin}",],
-    "ðŸ‘°":     ["{person with veil}",],
-    "ðŸ°":     ["{rabbit face}",],
-    "ðŸ‡":     ["{rabbit}",],
-    '\ue0067':["E","g"],
-    '\u1faf6':["{heart hands}",],
-    'ó §':       ["g",],     #editplus didn't this character when pasted, but it worked, but later seems to have changed, so expect failure
-    'ó ¢':       ["b",],     #editplus didn't this character when pasted, but it worked, but later seems to have changed, so expect failure
-    'ó ³':       ["s",],     #editplus didn't this character when pasted, but it worked, but later seems to have changed, so expect failure
-    'ó £':       ["c",],     #editplus didn't this character when pasted, but it worked, but later seems to have changed, so expect failure
-    'ó ¿':       ["{cancelled!}",],
-    '\u0081':    ["{control}",],
-    '\u0090':    ["{device control}",],
-    '\u008F':    ["3",],                                  #"single shift 3"
-    '\ud83d':    ["{smiling face with open mouth}"],
-    'code ud83d':["{smiling face with open mouth}"],
-    "\u1f409":   ["{dragon}",],
+    "'":          ["'"],                             #is this a unicode apostrophe?
+    '\ue0067':    ["E","g"],
+    '\u1faf6':    ["{heart hands}",],
+    '\u0081':     ["{control}",],
+    '\u0090':     ["{device control}",],
+    '\u008F':     ["3",],                                  #"single shift 3"
+    '\ud83d':     ["{smiling face with open mouth}"],
+    'code ud83d': ["{smiling face with open mouth}"],
+    "\u1f409":    ["{dragon}",],
     "code u1f409":["{dragon}",],
-    "ðŸ¦‹":      ["{butterfly}",],
-    "ðŸ”—":      ["{chain link}",],
-    "ðŸ§¨":      ["{firecracker}",],
-    "ï¸â™¥ï¸":   ["<3","{heart}"],
-    "â™•":       ["{crown}",],
-    "ðŸ¯":       ["{tiger face}",],
-    "ðŸ’¸":      ["{money with wings}",],
-    "🎉":        ["{party popper}",],
+    #"ðŸ¦‹":      ["{butterfly}",],             \
+    #"ðŸ”—":      ["{chain link}",],             \
+    #"ðŸ§¨":      ["{firecracker}",],             \
+    #"ï¸â™¥ï¸":   ["<3","{heart}"],                \____ examples of how the encoding gets screwed up by EditPlus and leaves us
+    #"â™•":       ["{crown}",],                    /     with destroyed code. Better to use codes than paste chars directly in.
+    #"ðŸ¯":       ["{tiger face}",],              /
+    #"ðŸ’¸":      ["{money with wings}",],       /
+    "🎉":         ["{party popper}",],
     #"":      ["",],
     #"":      ["",],
     #"":      ["",],

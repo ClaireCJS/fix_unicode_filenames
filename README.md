@@ -28,21 +28,22 @@ The idea is to reduce workflow tool breakage by purging special characters that 
 It can be run in 5 usual modes:
 
 ```
-1. To cleanse all file/folder names in your dir *with*  Yes/No prompting
-2. To cleanse all file/folder names in your dir without Yes/No prompting
+1. To cleanse all file/folder names in your dir *with*  Yes/No prompting - add /s to recurse
+2. To cleanse all file/folder names in your dir without Yes/No prompting - add /s to recurse
 3. To cleanse a single string of unicode/emoji (keep bad-filename-chracters)
 4. To cleanse a single string of unicode/emoji *AND* bad-filename-chracters 
 5. To run internal testing suite / lookup table validation
 ```
 Which can be invoked like this:
 ```
-1. fix_unicode_filenames 	                
-2. fix_unicode_filenames auto                    
+1. fix_unicode_filenames [/s]
+2. fix_unicode_filenames auto [/s]
 3. fix_unicode_filenames string "😈𝚫🎉 💜Ꝁ🤠🤡🤢矲石矴🍕"  
 4. fix_unicode_filenames file   "😈𝚫🎉 💜Ꝁ🤠🤡🤢矲石矴🍕"  
 5. fix_unicode_filenames test
 ```     
 
+Note that the /s option _must_ be given last.
 
 
 # How do I use it as a programming module?
