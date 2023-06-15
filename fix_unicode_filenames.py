@@ -519,7 +519,7 @@ def clear_keyboard_buffer():
 #            new_new_file = last_minute_filename_cleanser(new_file)              #if we've put invalid values in our mapping table without having run our tests, it can be possible to have to cleanse one more time.  Also, some emoji libraries may decode into something invalid for filenames, and since we didn't test if all the decodings were valid, we must run it through a 2nd time for that possibility as well. It's unfortunate, but not expensive.
 #            if do_it_for_real:
 #                #os.rename(old_file, new_new_file)                              #would error if new folder already existed
-#                rename_folder_but_if_renamed_is_a_folder_that_already_exists_then_move_files_into_it_instead(old_file, new_new_file)
+#                rename_folder_or_file_but_if_renamed_is_a_folder_that_already_exists_then_move_files_into_it_instead(old_file, new_new_file)
 #
 #            primt("\n")
 #            if automatic: primt(f"\t{Fore.YELLOW} Automatic Run: {mode}")
@@ -541,7 +541,7 @@ def rename_files_in_current_directory(mode="file",automatic_mode=False,recursive
     directory      = sys.argv[1] if len(sys.argv) > 1 else '.'
 
     def process_directory(directory):
-        nonlocal any_files_found_to_rename_at_all
+        nonlocal any_files_found_to_rename_at_all, automatic
         for filename in os.listdir(directory):
             filename_for_primt = filename.encode('utf-8','ignore')
             if DEBUG_ANNOUNCE_FILENAMES: primt(f"{Fore.CYAN}{Style.BRIGHT}* Processing file {filename}...{Style.NORMAL}{Fore.WHITE}")
@@ -554,6 +554,7 @@ def rename_files_in_current_directory(mode="file",automatic_mode=False,recursive
                     do_it_for_real = True
                     action_string  = "  Auto-Renamed"
                 else:
+                    automatic      = False
                     permission = ask_permission(filename, new_name)
                     do_it_for_real = permission
                     action_string  = "       Renamed" if permission is True else f"{Fore.RED}Did not rename"
@@ -565,7 +566,7 @@ def rename_files_in_current_directory(mode="file",automatic_mode=False,recursive
 
                 new_new_file = last_minute_filename_cleanser(new_file)
                 if do_it_for_real:
-                    rename_folder_but_if_renamed_is_a_folder_that_already_exists_then_move_files_into_it_instead(old_file, new_new_file)
+                    rename_folder_or_file_but_if_renamed_is_a_folder_that_already_exists_then_move_files_into_it_instead(old_file, new_new_file)
 
                 primt("\n")
                 if automatic: primt(f"\t{Fore.YELLOW} Automatic Run: {mode}")
@@ -585,7 +586,13 @@ def rename_files_in_current_directory(mode="file",automatic_mode=False,recursive
 
 
 
-def rename_folder_but_if_renamed_is_a_folder_that_already_exists_then_move_files_into_it_instead(old_name, new_name):
+def rename_folder_or_file_but_if_renamed_is_a_folder_that_already_exists_then_move_files_into_it_instead(old_name, new_name):
+    if len(new_name) > 253: new_name = new_name.replace('{', '').replace('}', '')
+    if len(new_name) > 253: new_name = new_name.replace('(', '').replace(')', '')
+    if len(new_name) > 253: new_name = new_name.replace('[', '').replace(']', '')
+    if len(new_name) > 253: new_name = new_name.replace(' ', '')
+    if len(new_name) > 253: new_name = new_name[:253]
+
     if not os.path.exists(new_name):                              # If the new folder doesn't exist, simply rename the old folder
         os.rename(old_name, new_name)
     else:
@@ -786,9 +793,11 @@ def get_mode(always_use_automatic_mode=False):
 def main():
     mode_name, mode_is_recursive, mode_is_automatic = get_mode(always_use_automatic_mode=False)
 
-    if len(sys.argv) == 1:
-        rename_files_in_current_directory(mode="file",automatic_mode=mode_is_automatic,       #MODE 1: Fix all files in the current folder, in filename mode
-                                                      recursive_mode=mode_is_recursive)
+    if len(sys.argv) == 1:                                                                    #MODE 1: Fix all files in the current folder, in filename mode
+        rename_files_in_current_directory    (mode="file",automatic_mode=mode_is_automatic)                #do current folder, which may change folder names
+        if mode_is_recursive:
+            rename_files_in_current_directory(mode="file",automatic_mode=mode_is_automatic,                #then recurse the new folder names
+                                                          recursive_mode=True)
         sys.exit(0)
     elif mode_name == 'test':                                                                 #MODE 4: Prepare to translate internal testing string
         string_to_process = get_testing_string() + "\n\n\n TESTING STRING #2: \n\n\n" + everychar.ALMOST_EVERY_CHARACTER

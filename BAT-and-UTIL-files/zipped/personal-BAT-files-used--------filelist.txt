@@ -1,6 +1,5 @@
 2023-06-08  18:57        516,484   45%  fix_unicode_filenames_every_char.py
 2023-06-09  11:42            781   52%  fix-unicode-filenames.bat
-2023-06-09  11:54          1,064   52%  validate-in-path.bat
 2023-06-10  23:23             89    4%  validate-environment-variables.bat
 2023-06-10  23:21         11,862   75%  validate-environment-variable.bat
 2023-05-29  17:47          4,116   71%  white-noise.bat
@@ -8,7 +7,6 @@
 2023-06-05  01:20             48   -4%  unimportant.bat
 2023-06-14  03:25          9,053   72%  print-message.bat
 2019-10-01  10:28            331   52%  randcolor.bat
-2023-06-06  02:41          2,380   60%  colors.bat
 2023-06-09  21:30            353   39%  ColorTool.bat
 2023-05-30  11:25            645   48%  settmpfile.bat
 2023-05-29  22:54             46   -4%  important.bat
@@ -22,6 +20,8 @@
 2023-06-04  11:19            528   39%  change-escape-character-to-tilde.bat
 2023-06-01  14:56            710   45%  change-escape-character-to-carrot.bat
 2023-06-09  12:16             41    0%  change-escape-character-to-normal.bat
-2023-06-10  23:39          2,042   56%  logging.bat
 2023-06-02  13:02             44   -4%  warning.bat
-2023-06-14  23:11         69,032   74%  fix_unicode_filenames.py
+2023-06-15  15:21         69,778   74%  fix_unicode_filenames.py
+2023-06-15  11:32          1,068   51%  validate-in-path.bat
+2023-06-15  02:57          2,380   60%  colors.bat
+2023-06-15  11:38          2,114   57%  logging.bat

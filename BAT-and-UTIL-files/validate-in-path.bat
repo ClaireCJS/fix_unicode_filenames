@@ -11,7 +11,7 @@ rem                     [Solution: add isalias check]
 rem    Complication #2: Windows command lines let us do commands like "dir/s" without space before the slash, 
 rem                     [Solution: use regular epressions to strip things off past a slash into a clean command]
    
-set logging_level=None
+set OUR_LOGGING_LEVEL=None
 
 for %command in (%*) do (
     set clean_command=%command%
