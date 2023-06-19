@@ -146,12 +146,8 @@
                     %COLOR_PROMPT% %+ pause %+ %COLOR_NORMAL%
                     %COLOR_PROMPT% %+ pause %+ %COLOR_NORMAL%
 
-                    call askyn "Return to comand line?"
-                    if %DO_IT eq 1 CANCEL
+                                 call exit-maybe
 
-                    %COLOR_PROMPT% %+ pause %+ %COLOR_NORMAL%
-                    %COLOR_PROMPT% %+ pause %+ %COLOR_NORMAL%
-                    %COLOR_PROMPT% %+ pause %+ %COLOR_NORMAL%
                     %COLOR_PROMPT% %+ pause %+ %COLOR_NORMAL%
                     %COLOR_PROMPT% %+ pause %+ %COLOR_NORMAL%
                     %COLOR_PROMPT% %+ pause %+ %COLOR_NORMAL%
