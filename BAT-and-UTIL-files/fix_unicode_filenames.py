@@ -104,9 +104,10 @@ import builtins
 import unicodedata
 from unidecode import unidecode
 from colorama import Fore, Back, Style, just_fix_windows_console
-import fix_unicode_filenames_every_char as everychar
-just_fix_windows_console()
 #init()
+just_fix_windows_console()
+import clairecjs_utils as claire
+import fix_unicode_filenames_every_char as everychar
 
 RECURSE=False                                                               #Whether we are in recursive mode or not
 
@@ -544,7 +545,12 @@ def rename_files_in_current_directory(mode="file",automatic_mode=False,recursive
         nonlocal any_files_found_to_rename_at_all, automatic
         for filename in os.listdir(directory):
             filename_for_primt = filename.encode('utf-8','ignore')
-            if DEBUG_ANNOUNCE_FILENAMES: primt(f"{Fore.CYAN}{Style.BRIGHT}* Processing file {filename}...{Style.NORMAL}{Fore.WHITE}")
+            if DEBUG_ANNOUNCE_FILENAMES:
+                ### without color-cycling:
+                #primt(f"{Fore.CYAN}{Style.BRIGHT}* Processing file {filename}...{Style.NORMAL}{Fore.WHITE}")
+                ### with color-cycling:
+                original_print(f"* Processing file {filename}...")
+                for i in range(100): claire.tick(mode="fg")                     #TODO maybe consider the range(100) thing bad form haha but we're also testing another library
             new_name = convert_to_ascii_filename_chracters(filename,mode)
 
             if filename != new_name:
