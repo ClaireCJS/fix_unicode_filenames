@@ -18,7 +18,6 @@ REM Initialize variables
 
 REM validate environment
     REM  we expect certain environment variables to be set to certain ANSI escape codes:
-    call validate-environment-variables BLINK_ON BLINK_OFF REVERSE_ON REVERSE_OFF ITALICS_ON ITALICS_OFF BIG_TEXT_LINE_1 BIG_TEXT_LINE_2
 
 REM Process parameters
     if "%1" eq "test" goto :TestSuite
@@ -53,10 +52,12 @@ REM Process parameters
     if %DEBUG_PRINTMESSAGE% eq 1 (echo TYPE=%TYPE% OUR_COLORTOUSE=%OUR_COLORTOUSE% DO_PAUSE=%DO_PAUSE% MESSAGE is: %MESSAGE% )
 
 REM Validate parameters
-    call validate-environment-variable  TYPE 
-    call validate-environment-variable  COLOR_%TYPE% "This variable COLOR_%TYPE% should be an existing COLOR_* variable in our environment"
-    call validate-environment-variables OUR_COLORTOUSE DO_PAUSE 
-    call validate-environment-variable  MESSAGE skip_validation_existence
+    if %VALIDATED_PRINTMESSAGE_ENV ne 1 (
+        call validate-environment-variable  COLOR_%TYPE% "This variable COLOR_%TYPE% should be an existing COLOR_* variable in our environment"
+        call validate-environment-variable  MESSAGE skip_validation_existence
+        call validate-environment-variables TYPE BLINK_ON BLINK_OFF REVERSE_ON REVERSE_OFF ITALICS_ON ITALICS_OFF BIG_TEXT_LINE_1 BIG_TEXT_LINE_2 OUR_COLORTOUSE DO_PAUSE 
+        set VALIDATED_PRINTMESSAGE_ENV=1
+    )
     set MESSAGE=%@UNQUOTE[%MESSAGE%]
 
 
