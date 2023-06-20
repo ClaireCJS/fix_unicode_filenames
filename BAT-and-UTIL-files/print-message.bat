@@ -1,5 +1,7 @@
 @Echo Off
 
+:REQUIRES: set-colors.bat (to define certain environment variables that represent ANSI character control sequences)
+
 REM usage call print-message MESSAGE_TYPE "message" [0|1]               - arg1=message/colorType, arg2=message, arg3=pause (1) or not (0)
 REM usage call print-message TEST                                       - to run internal test suite
 REM usage call print-message message without quotes                     - no 3rd arg of 0|1 will cause the whole line to be treated as the message
@@ -13,6 +15,10 @@ REM Initialize variables
     set MESSAGE=Null
     set DO_PAUSE=-666
     set OUR_COLORTOUSE=
+
+REM validate environment
+    REM  we expect certain environment variables to be set to certain ANSI escape codes:
+    call validate-environment-variables BLINK_ON BLINK_OFF REVERSE_ON REVERSE_OFF ITALICS_ON ITALICS_OFF BIG_TEXT_LINE_1 BIG_TEXT_LINE_2
 
 REM Process parameters
     if "%1" eq "test" goto :TestSuite
@@ -48,7 +54,7 @@ REM Process parameters
 
 REM Validate parameters
     call validate-environment-variable  TYPE 
-    call validate-environment-variable  COLOR_%TYPE% "This variable should be an existing COLOR_* variable in our environment"
+    call validate-environment-variable  COLOR_%TYPE% "This variable COLOR_%TYPE% should be an existing COLOR_* variable in our environment"
     call validate-environment-variables OUR_COLORTOUSE DO_PAUSE 
     call validate-environment-variable  MESSAGE skip_validation_existence
     set MESSAGE=%@UNQUOTE[%MESSAGE%]
@@ -61,53 +67,95 @@ REM Type alias/synonym handling
 
 
 REM Behavior overides and message decorators depending on the type of message?
-    if  "%TYPE%"  eq "UNIMPORTANT"    set MESSAGE=...%MESSAGE%
-    REM "%TYPE%"  eq "ADVICE"         set MESSAGE=--> %MESSAGE%  To avoid issues with the redirection character, this decorator is inserted below just-in-time at runtime
-    if  "%TYPE%"  eq "DEBUG"          set MESSAGE=- DEBUG: %MESSAGE%
-    if  "%TYPE%"  eq "LESS_IMPORTANT" set MESSAGE=* %MESSAGE%
-    if  "%TYPE%"  eq "IMPORTANT_LESS" set MESSAGE=* %MESSAGE%
-    if  "%TYPE%"  eq "IMPORTANT"      set MESSAGE=*** %MESSAGE%
-    if  "%TYPE%"  eq "WARNING"        set MESSAGE=!! %MESSAGE% !!
-    if  "%TYPE%"  eq "CELEBRATION"    set MESSAGE=*** %MESSAGE%! ***
-    if  "%TYPE%"  eq "COMPLETION"     set MESSAGE=*** %MESSAGE%! ***
-    if  "%TYPE%"  eq "ALARM"          set MESSAGE=****** %MESSAGE% *******
-    if  "%TYPE%"  eq "ERROR"          set MESSAGE=********** %MESSAGE% ***********
-    if  "%TYPE%"  eq "FATAL_ERROR"    set MESSAGE=*********************** !!! %MESSAGE% !!! ***********************
+    if  "%TYPE%"  eq "UNIMPORTANT"    (set DECORATOR_LEFT=...           %+ set DECORATOR_RIGHT=)
+    REM to avoid issues with the redirection character, ADVICE's left-decorator is inserted at runtime
+    REM "%TYPE%"  eq "ADVICE"         (set DECORATOR_LEFT=`-->`         %+ set DECORATOR_RIGHT=) 
+    if  "%TYPE%"  eq "ADVICE"         (set DECORATOR_LEFT=              %+ set DECORATOR_RIGHT=) 
+    if  "%TYPE%"  eq "DEBUG"          (set DECORATOR_LEFT=- DEBUG: ``   %+ set DECORATOR_RIGHT=)
+    if  "%TYPE%"  eq "LESS_IMPORTANT" (set DECORATOR_LEFT=* ``          %+ set DECORATOR_RIGHT=)
+    if  "%TYPE%"  eq "IMPORTANT_LESS" (set DECORATOR_LEFT=* ``          %+ set DECORATOR_RIGHT=)
+    if  "%TYPE%"  eq "IMPORTANT"      (set DECORATOR_LEFT=*** ``        %+ set DECORATOR_RIGHT=)
+    if  "%TYPE%"  eq "WARNING"        (set DECORATOR_LEFT=!! ``         %+ set DECORATOR_RIGHT= !!)
+    if  "%TYPE%"  eq "CELEBRATION"    (set DECORATOR_LEFT=*** ``        %+ set DECORATOR_RIGHT=! ***)
+    if  "%TYPE%"  eq "COMPLETION"     (set DECORATOR_LEFT=*** ``        %+ set DECORATOR_RIGHT=! ***)
+    if  "%TYPE%"  eq "ALARM"          (set DECORATOR_LEFT=* ``          %+ set DECORATOR_RIGHT= *)
+    if  "%TYPE%"  eq "ERROR"          (set DECORATOR_LEFT=*** ``        %+ set DECORATOR_RIGHT= ***)
+    if  "%TYPE%"  eq "FATAL_ERROR"    (set DECORATOR_LEFT=***** !!! ``  %+ set DECORATOR_RIGHT= !!! *****)
+    set DECORATED_MESSAGE=%DECORATOR_LEFT%%MESSAGE%%DECORATOR_RIGHT%
 
+
+REM Update the window title, with its own independent decorators 
+    set TITLE=%MESSAGE%
+    if "%TYPE%" eq          "DEBUG" (set            TITLE=DEBUG: %title%)
+    if "%TYPE%" eq   "WARNING_LESS" (set          TITLE=Warning: %title%)
+    if "%TYPE%" eq        "WARNING" (set          TITLE=WARNING: %title% !)
+    if "%TYPE%" eq "LESS_IMPORTANT" (set                 TITLE=! %title% !)
+    if "%TYPE%" eq "IMPORTANT_LESS" (set                 TITLE=! %title% !)
+    if "%TYPE%" eq      "IMPORTANT" (set                TITLE=!! %title% !!)
+    if "%TYPE%" eq          "ALARM" (set          TITLE=! ALARM: %title% !)
+    if "%TYPE%" eq          "ERROR" (set         TITLE=!! ERROR: %title% !!)
+    if "%TYPE%" eq    "FATAL_ERROR" (set TITLE=!!!! FATAL ERROR: %title% !!!!)
 
 REM Pre-message beep based on message type
     if "%TYPE%" eq "DEBUG"  (beep  lowest 1)
     if "%TYPE%" eq "ADVICE" (beep highest 3)
 
-REM Actually output the message!
-
-    REM pause or repeat the message if appliacble
+REM Pre-Message pause based on message type
         if %DO_PAUSE% eq 1 (echo.)                                                                                                     %+ REM pausable messages need a litle visual cushion
+
+REM Pre-Message determination of if we do a big header or not
+                                                                                                                        set BIG_HEADER=0
+        if  "%TYPE%" eq "ERROR" .or. "%TYPE%" eq "FATAL_ERROR" .or. "%TYPE%" eq "ALARM" .or. "%TYPE%" eq "CELEBRATION" (set BIG_HEADER=1)
+
+REM Pre-Message determination of how many times we will display the msessage
         set HOW_MANY=1 
-        if "%TYPE%" eq       "ERROR" set HOW_MANY=1 2 3
-        if "%TYPE%" eq "FATAL_ERROR" set HOW_MANY=1 2 3 4 5 6
-    REM print the message
-        for %msgNum in (%HOW_MANY%) do (
-            %OUR_COLORTOUSE% 
-            if  "%TYPE%" eq "ADVICE" echos `--> `
-            echos %MESSAGE% 
-            %COLOR_NORMAL% %+ echo ``
+        if "%TYPE%" eq       "ERROR" (set HOW_MANY=1 2 3)
+        if "%TYPE%" eq "FATAL_ERROR" (set HOW_MANY=1 2 3 4 5)
+
+REM Actually display the message
+        REM display our opening big-header, if we are in big-header mode
+        if %BIG_HEADER eq 1 (set COLOR_TO_USE=%OUR_COLORTOUSE% %+ call bigecho ****%DECORATOR_LEFT%%@UPPER[%TYPE%]%DECORATOR_RIGHT%****)
+
+        REM repeat the message the appropriate number of times
+        for %msgNum in (%HOW_MANY%) do (           
+            REM handle pre-message formatting [color/blinking/reverse/italics/faint], based on what type of message and which message in the sequence of repeated messages it is
+            %OUR_COLORTOUSE%
+            if  %BIG_HEADER eq    1           (echos %BLINK_ON%)
+            if "%TYPE%"     eq "SUBTLE"       (echos %FAINT_ON%)
+            if "%TYPE%"     eq "UNIMPORTANT"  (echos %FAINT_ON%)
+            if "%TYPE%"     eq "SUCCESS"      (echos  %BOLD_ON%)
+            if "%TYPE%"     eq "ERROR"   (
+                if %@EVAL[%msgNum mod 2] == 1 (echos %REVERSE_ON%)
+                if %@EVAL[%msgNum mod 2] == 0 (echos %REVERSE_OFF%%BLINK_OFF%)
+            )
+            if "%TYPE%" eq "FATAL_ERROR" (
+                if %@EVAL[%msgNum mod 3] == 0 (echos %BLINK_OFF%)
+                if %@EVAL[%msgNum mod 2] == 1 (echos %REVERSE_OFF%)
+                if %@EVAL[%msgNum mod 2] == 0 (echos %REVERSE_ON%)
+                if        %msgNum        != 3 (echos %ITALICS_OFF%)
+                if        %msgNum        == 3 (echos %ITALICS_ON%)
+            )
+
+            REM HACK: This one decorator has to be manually displayed here at the last minute to avoid issues with ">" being the redirection character
+            if "%TYPE%" eq "ADVICE" (echos `--> `)
+
+            REM actually print the message:
+            echos %DECORATED_MESSAGE% 
+
+            REM handle post-message formatting
+            if "%TYPE%"     eq "UNIMPORTANT" (echos %FAINT_OFF%)
+            if "%TYPE%"     eq "SUBTLE"      (echos %FAINT_OFF%)
+            if "%TYPE%"     eq "SUCCESS"     (echos  %BOLD_OFF%)
+            if  %BIG_HEADER eq    1          (echos %BLINK_OFF%)
+            %COLOR_NORMAL% 
+            echo ``
         )
-        set TITLE=%MESSAGE%
+        REM display our closing big-header, if we are in big-header mode
+        if %BIG_HEADER eq 1 (set COLOR_TO_USE=%OUR_COLORTOUSE% %+ call bigecho ****%DECORATOR_LEFT%%@UPPER[%TYPE%]%DECORATOR_RIGHT%****)
 
 
-REM Message-type-based behavior:
 
-    rem Determine window titles
-        if "%TYPE%" eq          "DEBUG" (set            TITLE=DEBUG: %title%)
-        if "%TYPE%" eq   "WARNING_LESS" (set          TITLE=Warning: %title%)
-        if "%TYPE%" eq        "WARNING" (set          TITLE=WARNING: %title% !)
-        if "%TYPE%" eq "LESS_IMPORTANT" (set                 TITLE=! %title% !)
-        if "%TYPE%" eq      "IMPORTANT" (set                TITLE=!! %title% !!)
-        if "%TYPE%" eq          "ERROR" (set         TITLE=!! ERROR: %title% !!)
-        if "%TYPE%" eq    "FATAL_ERROR" (set TITLE=!!!! FATAL ERROR: %title% !!!!)
-
-    REM Determine delays and pauses
+REM Post-message delays and pauses
         set DO_DELAY=0    
         REM DO_PAUSE=0 WOULD BE FATAL beause we set this from calling scripts for automation
         if "%TYPE%" eq "WARNING"                        (set DO_DELAY=1)
@@ -115,7 +163,7 @@ REM Message-type-based behavior:
         if "%TYPE%" eq "ERROR" .or. "%TYPE%" eq "ALARM" (set DO_PAUSE=1)
         if "%TYPE%" eq "FATAL_ERROR"                    (set DO_PAUSE=2)
 
-    REM Post-message beep based on message type
+REM Post-message beeps and sound effects
         if "%TYPE%" eq "CELEBRATION" .or. "%TYPE%" eq "COMPLETION" (beep exclamation)
         if "%TYPE%" eq "ERROR" .or. "%TYPE%" eq "ALARM"   (
             beep 145 1 ^ beep 120 1 ^ beep 100 1 ^ beep 80 1 ^ beep 65 1 ^ beep 50 1 ^ beep 40 1 
@@ -134,14 +182,14 @@ REM Message-type-based behavior:
     REM Do delay:
         if %DO_DELAY gt 0 (delay %DO_DELAY)
     
-    REM Determine type-based custom behavior
-        if "%TYPE%" eq "FATAL_ERROR" (
+REM For errors, give chance to gracefully exit the script (no more mashing of ^C / ^Break)
+        if "%TYPE%" eq "FATAL_ERROR" .or. "%TYPE%" eq "ERROR" (
             set DO_IT=
             call askyn "Cancel all execution and return to command line?" yes
             if %DO_IT eq 1 CANCEL
         )
 
-    REM Do pause:
+REM Hit user with the 'pause' prompt several times, to prevent accidental passthrough from previous key mashing
         if %DO_PAUSE% gt 0 (echo. %+ for %pauseNum in (1 2 3 4 5) do (call randcolor %+ *pause %+ %COLOR_NORMAL%))
         if %DO_PAUSE% gt 1 (         for %pauseNum in (1 2 3 4 5) do (call randcolor %+ *pause %+ %COLOR_NORMAL%))
 
@@ -154,10 +202,10 @@ goto :END
                 cls
                 call colors silent %+ REM sets ALL_COLORS
                 echo.
-                call important "System print test - press N to go from one to the next --- any other key will cause tests to not complete"
+                call important "System print test - press N to go from one to the next --- any other key will cause tests to not complete -- if you get stuck hit enter once, then N -- if that doesn't work hit enter twice, then N"
                 echo.
                 pause>nul
-                for %clr in (error_fatal %ALL_COLORS%) (
+                for %clr in (%ALL_COLORS%) (
                     set clr4print=%clr%
                     REM if "%clr%" eq "question"    set "clr4print=%CLR%    (windows: 'Question')"
                     echo.

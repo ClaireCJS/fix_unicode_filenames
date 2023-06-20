@@ -11,7 +11,7 @@ REM Parameter catching:
 
         set WAIT_OPS=
         set wait_time=%3
-        if "%wait_time%" ne "" set WAIT_OPS=/W%wait_time%
+        if "%wait_time%" ne "" set WAIT_OPS=/T /W%wait_time% 
 
         
 REM Parameter validation:
@@ -19,10 +19,14 @@ REM Parameter validation:
         if "%default_answer" ne "" .and. "%default_answer%" ne "yes" .and. "%default_answer%" ne "no" .and. "%default_answer%" ne "y" .and. "%default_answer%" ne "n" (
            call fatal_error "2nd parameter can only be 'yes', 'no', 'y', or 'n'"
         )
-        if "%default_answer%" eq "y" (
+        if "%2" eq "" (
             set default_answer=no
-            call unimportant "Answer is defaulting to %default_answer% because 2nd parameter was not passed"
+            call warning "Answer is defaulting to %default_answer% because 2nd parameter was not passed"
         )
+
+REM Parameter processing/massaging:
+        if "%default_answer%" eq "y" (set default_answer=yes)
+        if "%default_answer%" eq "n" (set default_answer=no)
 
 REM Ask the question:
         %COLOR_PROMPT% 
