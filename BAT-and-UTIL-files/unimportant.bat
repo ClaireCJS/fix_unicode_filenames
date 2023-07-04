@@ -1,3 +1,3 @@
-@echo OFF
+@Echo OFF
 
 call print-message unimportant %*

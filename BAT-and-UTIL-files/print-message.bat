@@ -108,8 +108,9 @@ REM Pre-Message determination of if we do a big header or not
                                                                                                                         set BIG_HEADER=0
         if  "%TYPE%" eq "ERROR" .or. "%TYPE%" eq "FATAL_ERROR" .or. "%TYPE%" eq "ALARM" .or. "%TYPE%" eq "CELEBRATION" (set BIG_HEADER=1)
 
-REM Pre-Message determination of how many times we will display the msessage
+REM Pre-Message determination of how many times we will display the message
         set HOW_MANY=1 
+        if "%TYPE%" eq "CELEBRATION" (set HOW_MANY=1 2)
         if "%TYPE%" eq       "ERROR" (set HOW_MANY=1 2 3)
         if "%TYPE%" eq "FATAL_ERROR" (set HOW_MANY=1 2 3 4 5)
 
@@ -125,6 +126,10 @@ REM Actually display the message
             if "%TYPE%"     eq "SUBTLE"       (echos %FAINT_ON%)
             if "%TYPE%"     eq "UNIMPORTANT"  (echos %FAINT_ON%)
             if "%TYPE%"     eq "SUCCESS"      (echos  %BOLD_ON%)
+            if "%TYPE%"     eq "CELEBRATION"  (
+                if        %msgNum        == 1 (echos %BIG_TOP_ON%    ``)
+                if        %msgNum        == 2 (echos %BIG_BOT_ON%    ``)
+            )
             if "%TYPE%"     eq "ERROR"   (
                 if %@EVAL[%msgNum mod 2] == 1 (echos %REVERSE_ON%)
                 if %@EVAL[%msgNum mod 2] == 0 (echos %REVERSE_OFF%%BLINK_OFF%)
@@ -147,6 +152,10 @@ REM Actually display the message
             if "%TYPE%"     eq "UNIMPORTANT" (echos %FAINT_OFF%)
             if "%TYPE%"     eq "SUBTLE"      (echos %FAINT_OFF%)
             if "%TYPE%"     eq "SUCCESS"     (echos  %BOLD_OFF%)
+            if "%TYPE%"     eq "CELEBRATION"  (
+                if        %msgNum        == 1 (echos     ``)
+                if        %msgNum        == 2 (echos     ``)
+            )
             if  %BIG_HEADER eq    1          (echos %BLINK_OFF%)
             %COLOR_NORMAL% 
             echo ``
@@ -167,11 +176,18 @@ REM Post-message delays and pauses
 REM Post-message beeps and sound effects
         if "%TYPE%" eq "CELEBRATION" .or. "%TYPE%" eq "COMPLETION" (beep exclamation)
         if "%TYPE%" eq "ERROR" .or. "%TYPE%" eq "ALARM"   (
-            beep 145 1 ^ beep 120 1 ^ beep 100 1 ^ beep 80 1 ^ beep 65 1 ^ beep 50 1 ^ beep 40 1 
+            beep 145 1 
+            beep 120 1 
+            beep 100 1 
+            beep  80 1 
+            beep  65 1 
+            beep  50 1 
+            beep  40 1 
             beep hand
         )         
         if "%TYPE%" eq "WARNING" (
-            *beep 60 1 ^ *beep 69 1        
+            *beep 60 1 
+            *beep 69 1        
             REM beep hand was overkil
             beep question
         )                                                                                                                              

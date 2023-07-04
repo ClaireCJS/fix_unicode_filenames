@@ -108,6 +108,7 @@ from colorama import Fore, Back, Style, just_fix_windows_console
 just_fix_windows_console()
 import clairecjs_utils as claire
 import fix_unicode_filenames_every_char as everychar
+original_print = print                                                      #Store the original print function before any potential overriding
 
 RECURSE=False                                                               #Whether we are in recursive mode or not
 
@@ -1128,7 +1129,10 @@ unicode_to_ascii_custom_character_mapping = {
     #"ðŸ¯":       ["{tiger face}",],              /
     #"ðŸ’¸":      ["{money with wings}",],       /
     "🎉":         ["{party popper}",],
-    #"":      ["",],
+    "⧸":          ["/","--"],
+    "\u29F8":     ["/","--"],
+    "／":         ["/","--"],                   #what strange new slash is this?
+
     #"":      ["",],
     #"":      ["",],
     #"":      ["",],

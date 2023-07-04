@@ -101,12 +101,12 @@
                         )
                         if %LENGTH_DIFF% lss 0 (
                             rem If USER_MESSAGE is longer
-                            for /L %%i in (1,1,%LENGTH_DIFF%) do   (set "ERROR_MESSAGE=*%ERROR_MESSAGE%*")
-                            if           %@ODD[%LENGTH_DIFF%] == 1 (set "ERROR_MESSAGE=%ERROR_MESSAGE%*" )
+                            for /L %%i in (1,1,%LENGTH_DIFF%)   do   (set "ERROR_MESSAGE=*%ERROR_MESSAGE%*")
+                            if          %@MOD,[%LENGTH_DIFF%,2] == 0 (set "ERROR_MESSAGE=%ERROR_MESSAGE%*" )
                         ) else (
-                            rem If ERROR_MESSAGE is longervali
-                            for /L %%i in (1,1,%LENGTH_DIFF%) do   (set "USER_MESSAGE=*%USER_MESSAGE%*")
-                            if           %@ODD[%LENGTH_DIFF%] == 1 (set "USER_MESSAGE=%USER_MESSAGE%*" )
+                            rem If ERROR_MESSAGE is longer
+                            for /L %%i in (1,1,%LENGTH_DIFF%)   do   (set "USER_MESSAGE=*%USER_MESSAGE%*")
+                            if            %MOD[%LENGTH_DIFF%,2] == 0 (set "USER_MESSAGE=%USER_MESSAGE%*" )
                         )
 
                         rem Output the updated ERROR_MESSAGE
