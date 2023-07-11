@@ -58,7 +58,10 @@ REM Validate parameters
         call validate-environment-variables TYPE BLINK_ON BLINK_OFF REVERSE_ON REVERSE_OFF ITALICS_ON ITALICS_OFF BIG_TEXT_LINE_1 BIG_TEXT_LINE_2 OUR_COLORTOUSE DO_PAUSE 
         set VALIDATED_PRINTMESSAGE_ENV=1
     )
-    set MESSAGE=%@UNQUOTE[%MESSAGE%]
+
+
+REM convert special characters
+    set MESSAGE=%@REPLACE[\n,%@CHAR[12]%@CHAR[13],%@REPLACE[\t,%@CHAR[9],%@UNQUOTE[%MESSAGE]]]
 
 
 REM Type alias/synonym handling
@@ -68,9 +71,11 @@ REM Type alias/synonym handling
 
 
 REM Behavior overides and message decorators depending on the type of message?
+                                       set DECORATOR_LEFT=              %+ set DECORATOR_RIGHT=
     if  "%TYPE%"  eq "UNIMPORTANT"    (set DECORATOR_LEFT=...           %+ set DECORATOR_RIGHT=)
     REM to avoid issues with the redirection character, ADVICE's left-decorator is inserted at runtime
     REM "%TYPE%"  eq "ADVICE"         (set DECORATOR_LEFT=`-->`         %+ set DECORATOR_RIGHT=) 
+    if  "%TYPE%"  eq "NORMAL"         (set DECORATOR_LEFT=              %+ set DECORATOR_RIGHT=) 
     if  "%TYPE%"  eq "ADVICE"         (set DECORATOR_LEFT=              %+ set DECORATOR_RIGHT=) 
     if  "%TYPE%"  eq "DEBUG"          (set DECORATOR_LEFT=- DEBUG: ``   %+ set DECORATOR_RIGHT=)
     if  "%TYPE%"  eq "LESS_IMPORTANT" (set DECORATOR_LEFT=* ``          %+ set DECORATOR_RIGHT=)
@@ -192,14 +197,14 @@ REM Post-message beeps and sound effects
             beep question
         )                                                                                                                              
         if "%TYPE%" eq "FATAL_ERROR" (
-            for %alarmNum in (1 2 3) do (beep ^ beep 145 1 ^ beep 120 1 ^ beep 100 1 ^ beep 80 1 ^ beep 65 1 ^ beep 50 1 ^ beep 40 1)
+            for %alarmNum in (1 2 3) do (beep %+ beep 145 1 %+ beep 120 1 %+ beep 100 1 %+ beep 80 1 %+ beep 65 1 %+ beep 50 1 %+ beep 40 1)
             beep hand
          )        
 
     REM Do delay:
         if %DO_DELAY gt 0 (delay %DO_DELAY)
     
-REM For errors, give chance to gracefully exit the script (no more mashing of ^C / ^Break)
+REM For errors, give chance to gracefully exit the script (no more mashing of ctrl-C / ctrl-Break)
         if "%TYPE%" eq "FATAL_ERROR" .or. "%TYPE%" eq "ERROR" (
             set DO_IT=
             call askyn "Cancel all execution and return to command line?" yes

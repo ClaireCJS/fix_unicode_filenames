@@ -52,6 +52,7 @@
         MODE 2: "file   <arguments>": Use "file"   as your first argument to cleanse the rest of the command line of unicode, as if it were a windows filename
         MODE 3: "string <arguments>": Use "string" as your first argument to cleanse the rest of the command line of unicode, without restricting to only-valid-in-windows-fiklenames
         MODE 4: "test"              : to convert the internal testing string
+        MODE 5: "script"            : experimental
 
     EXAMPLE PROGRAMMATIC USAGE:
         import fixUnicodeFilenames
@@ -110,15 +111,19 @@ import clairecjs_utils as claire
 import fix_unicode_filenames_every_char as everychar
 original_print = print                                                      #Store the original print function before any potential overriding
 
-RECURSE=False                                                               #Whether we are in recursive mode or not
+############################ RUNTIME CONFIGURATION ############################
+VALID_MODES = ["string", "file", "test", "script"]
+INVALID_WINDOWS_FILENAME_CHARACTERS = r'<>:"/\|?*'
+RECURSE=False                          #Whether we are in recursive mode or not
+###############################################################################
 
-############################ DEVELOPMENT CONFIGURATION ############################
+########################## DEVELOPMENT CONFIGURATION ############################
 DIE_ON_UNDECODEABLE_UNICODE_CHARACTER = True
 DRY_RUN                               = False
-###################################################################################
+#################################################################################
 
 
-################################################ DEBUG ################################################
+################################## DEBUG CONFIGURATION ################################################
 DEBUG_MOST_CHARS = False           #controls several debugs below
 DEBUG_ALL_CHARS  = False           #controls several debugs below
 
@@ -132,10 +137,6 @@ DEBUG_UNIDECODECHAR_TRANSLATECHAR = bool(False or DEBUG_ALL_CHARS)              
 DEBUG_INTERNAL_TESTING=False
 #######################################################################################################
 
-
-############################ CONSTANTS ############################
-INVALID_WINDOWS_FILENAME_CHARACTERS = r'<>:"/\|?*'
-###################################################################
 
 
 ###################################### TESTING ######################################
@@ -247,12 +248,10 @@ def translate_one_or_more_chars_with_custom_character_mapping(chars, mode):     
     """
         Returns characters (after mapping), and done (boolean) which i used for flow control in the outer scope the first time it's called, but ignored the second time it's called
     """
-    global DEBUG_UNIDECODECHAR_TRANSLATECHAR
+    global DEBUG_UNIDECODECHAR_TRANSLATECHAR, VALID_MODES
 
-    # Check valid mode
-    valid_modes = ['string', 'file']
-    if mode not in valid_modes:
-        primt(f"{Fore.RED}FATAL TRANSLATE ERROR: translate_one_or_more_chars_with_custom_character_mapping called with invalid mode of {mode} which is not in {valid_modes}")
+    if mode not in VALID_MODES:
+        primt(f"{Fore.RED}FATAL TRANSLATE ERROR: translate_one_or_more_chars_with_custom_character_mapping called with invalid mode of {mode} which is not in {VALID_MODES}")
         sys.exit(666)
 
     translated_chars = []
@@ -665,10 +664,6 @@ def last_minute_filename_cleanser(filename):
 
 
 
-
-
-
-
 ## Public calls:
 def convert_a_string  (string_to_convert  ,silent_if_unchanged=False, silent_if_changed=False, silent=False): return just_convert_a_string(  string_to_convert,"string",silent_if_unchanged=silent_if_unchanged,silent_if_changed=silent_if_changed,silent=silent)
 def convert_a_filename(filename_to_convert,silent_if_unchanged=False, silent_if_changed=False, silent=False): return just_convert_a_string(filename_to_convert,"file"  ,silent_if_unchanged=silent_if_unchanged,silent_if_changed=silent_if_changed,silent=silent)
@@ -677,6 +672,7 @@ def just_convert_a_string(string_to_convert,mode,silent_if_unchanged=False,silen
     global DIE_ON_UNDECODEABLE_UNICODE_CHARACTER
     if __name__ != "__main__": DIE_ON_UNDECODEABLE_UNICODE_CHARACTER=False          #only die when being run, not when being imported
 
+    # special handling for testing mode
     if mode == "test":
         run_internal_tests()
         for temp_mode in ["file", "string"]:
@@ -684,21 +680,343 @@ def just_convert_a_string(string_to_convert,mode,silent_if_unchanged=False,silen
             primt ("Test result: " + just_convert_a_string(string_to_convert,temp_mode))
         return ":)"
 
+    # special handling for script mdoe
+    if mode == "script":
+        create_script_to_define_emoji_characters()
+        sys.exit(0)
+        return ":)"
+
+
+    # actually convert the string
     romanized_string  = convert_to_ascii_filename_chracters(string_to_convert,mode)     #...which we then fix the same way we would fix our filenames
+
+    # print out the ch ange if we are instructed to do so
     if silent or (silent_if_unchanged and string_to_convert == romanized_string) or (silent_if_changed and string_to_convert != romanized_string):
         pass #don't primt
     else:
         primt(f"{Fore.RED}Old string: {string_to_convert}")
         primt(f"{Fore.GREEN}New string: {romanized_string }")
+
     return romanized_string
 
 
-def run_internal_tests():
-    primt (f"{Fore.GREEN}{Style.BRIGHT}\nRunning internal mapping table integrity test for valid filename characters...{Style.NORMAL}")
-    internal_mapping_table_integrity_test_check_for_invalid_filename_chars()
-    primt (f"{Fore.GREEN}{Style.BRIGHT}Passed!{Style.NORMAL}")
 
-def internal_mapping_table_integrity_test_check_for_invalid_filename_chars():
+
+
+
+
+
+
+
+
+#from emoji.unicode_codes import EMOJI_DATA
+#
+#def create_script_to_define_emoji_characters():
+#    for emoji, emoji_data in EMOJI_DATA.items():
+#        # Fetch the emoji name
+#        emoji_name = emoji_data.get('en', '')
+#        emoji_name = emoji_name.upper().replace(' ', '_').replace(':', '').replace('-', '_')
+#
+#        # Get the unicode code points and convert them to decimal
+#        emoji_codes = emoji.encode('unicode_escape').decode('ASCII').split('\\')[1:]
+#
+#        # Create the output string
+#        output_string = f"SET EMOJI_{emoji_name}="
+#        for code in reversed(emoji_codes):  # reversed added here
+#            if code.startswith('0'):
+#                value = int(code, 16)
+#                output_string += f"%@CHAR[{value}]"
+#            elif code.startswith('U'):
+#                value = int(code[1:], 16)
+#                output_string += f"%@CHAR[{value}]"
+#            elif code == 'ufe0f':
+#                # This is a variation selector, handle it accordingly
+#                output_string += "+%@CHAR[65039]"  # 65039 is decimal equivalent of 'U+FE0F'
+#            elif code == 'u200d':
+#                # This is a Zero Width Joiner, handle it accordingly
+#                output_string += "+%@CHAR[8205]"  # 8205 is decimal equivalent of 'U+200D'
+#            else:
+#                # Unknown code, handle it as you see fit
+#                primt(f"Unknown code encountered: {code}")
+#
+#        primt(output_string)
+
+
+
+def create_script_to_define_emoji_characters_1():
+    primt("EMOJI_ENVIRONMENT_VARIABLES_CREATED_BY=fix_unicode_files.py script")
+    import ctypes
+    from emoji.unicode_codes import EMOJI_DATA
+    processed_emojis = set()  # Set to track processed emojis
+    output_strings = []  # List to store the output strings
+    processed_output_strings = set()  # Set to track processed output strings
+    for emoji, emoji_data in EMOJI_DATA.items():
+        # Fetch the base emoji without any skin tone variation
+        base_emoji = emoji.split('\u200d')[0]
+
+        # Check if the base emoji has already been processed
+        if base_emoji not in processed_emojis:
+            processed_emojis.add(base_emoji)
+
+            emoji_name_meat = emoji_data['en'].upper().replace(' ', '_').replace(':', '').replace('-', '_').replace("'", '').replace('SKIN_TONE', 'SKIN').replace('&', '_AND_')
+
+            # Check if the current emoji is fully qualified
+            if emoji_data['status'] == 'fully_qualified':
+                emoji_name = f"EMOJI_{emoji_name_meat}"
+            else:
+                emoji_name = f"EMOJI_{emoji_name_meat}_UNQUALIFIED"
+
+            # Convert the emoji into a ctypes wide string
+            # Then cast it to a pointer to short (16-bit) integers, and fetch the values
+            emoji_code_units = ctypes.cast(ctypes.c_wchar_p(emoji), ctypes.POINTER(ctypes.c_uint16))
+
+            # Create the output string
+            output_string = f"{emoji_name}="
+            for i in range(2):  # two UTF-16 code units
+                output_string += f"%@CHAR[{emoji_code_units[i]}]"
+
+            output_strings.append(output_string)
+
+    # Check and print the output strings
+    for output_string in output_strings:
+        if output_string not in processed_output_strings:
+            processed_output_strings.add(output_string)
+
+    # Print the output strings
+    for output_string in processed_output_strings:
+        primt(output_string)
+
+
+
+
+
+
+
+def create_script_to_define_emoji_charactersDECENTBUTPROBLEMATICAF():
+    primt("EMOJI_ENVIRONMENT_VARIABLES_CREATED_BY=fix_unicode_files.py script")
+    import ctypes
+    from emoji.unicode_codes import EMOJI_DATA
+    processed_emojis = set()  # Set to track processed emojis
+    qualified_emojis = set()  # Set to track qualified emojis
+    output_strings = []  # List to store the output strings
+    for emoji, emoji_data in EMOJI_DATA.items():
+        # Fetch the base emoji without any skin tone variation
+        base_emoji = emoji.split('\u200d')[0]
+
+        # Check if the base emoji has already been processed
+        if base_emoji not in processed_emojis:
+            processed_emojis.add(base_emoji)
+
+            emoji_name_meat = emoji_data['en'].upper().replace(' ', '_').replace(':', '').replace('-', '_').replace("'", '').replace('SKIN_TONE', 'SKIN').replace('&', '_AND_')
+
+            # Check if the current emoji is fully qualified
+            if emoji_data['status'] == 'fully_qualified':
+                qualified_emojis.add(emoji_name_meat)
+                emoji_name = f"EMOJI_{emoji_name_meat}"
+                qualified_output_string = None
+            else:
+                emoji_name = f"EMOJI_{emoji_name_meat}_UNQUALIFIED"
+                qualified_output_string = f"EMOJI_{emoji_name_meat}"
+
+            # Convert the emoji into a ctypes wide string
+            # Then cast it to a pointer to short (16-bit) integers, and fetch the values
+            emoji_code_units = ctypes.cast(ctypes.c_wchar_p(emoji), ctypes.POINTER(ctypes.c_uint16))
+
+            # Create the output string
+            output_string = f"{emoji_name}="
+            for i in range(2):  # two UTF-16 code units
+                output_string += f"%@CHAR[{emoji_code_units[i]}]"
+
+            output_strings.append(output_string)
+
+            # Append the qualified output string if available
+            if qualified_output_string:
+                qualified_output_string += f"=%@CHAR[{emoji_code_units[0]}]%@CHAR[{emoji_code_units[1]}]"
+                output_strings.append(qualified_output_string)
+
+    # Print the output strings
+    for output_string in output_strings:
+        primt(output_string)
+
+
+
+
+
+def create_script_to_define_emoji_characters_tried_without_gpt_got_5718():
+    primt("EMOJI_ENVIRONMENT_VARIABLES_CREATED_BY=fix_unicode_files.py script")
+    import ctypes
+    from emoji.unicode_codes import EMOJI_DATA
+    processed_emojis = set()  # Set to track processed emojis
+    qualified_emojis = set()  # Set to track qualified emojis
+    unqualified_emojis = set()  # Set to track qualified emojis
+    rights = set() # set to track right half of = in output file so we don't make duplicates
+    output_strings = []  # List to store the output strings
+    for emoji, emoji_data in EMOJI_DATA.items():
+        # Fetch the base emoji without any skin tone variation
+        base_emoji = emoji.split('\u200d')[0]
+
+        # Check if the base emoji has already been processed
+        if base_emoji not in processed_emojis:
+            processed_emojis.add(base_emoji)
+
+            emoji_name_meat = emoji_data['en'].upper().replace(' ', '_').replace(':', '').replace('-', '_').replace("'", '').replace('SKIN_TONE', 'SKIN').replace('&', '_AND_')
+
+            # Check if the current emoji is fully qualified
+            if emoji_data['status'] == 'fully_qualified':
+                if emoji_name_meat in qualified_emojis:
+                    continue
+                qualified_emojis.add(emoji_name_meat)
+                emoji_name = f"EMOJI_{emoji_name_meat}"
+                qualified_output_string = None
+
+            else:
+                if emoji_name_meat in unqualified_emojis:
+                    continue
+                unqualified_emojis.add(emoji_name_meat)
+                emoji_name = f"EMOJI_{emoji_name_meat}_UNQUALIFIED"
+                qualified_output_string = f"EMOJI_{emoji_name_meat}"
+
+            # Convert the emoji into a ctypes wide string
+            # Then cast it to a pointer to short (16-bit) integers, and fetch the values
+            emoji_code_units = ctypes.cast(ctypes.c_wchar_p(emoji), ctypes.POINTER(ctypes.c_uint16))
+
+            # Create the output string
+            right = ""
+            for i in range(2):  # two UTF-16 code units
+                right += f"%@CHAR[{emoji_code_units[i]}]"
+            output_string = f"{emoji_name}={right}"
+            if right in rights:
+                continue
+            rights.add(right)
+
+            if output_string in output_strings:
+                continue
+            output_strings.append(output_string)
+
+            # Append the qualified output string if available
+            if qualified_output_string:
+                qualified_output_string += f"=%@CHAR[{emoji_code_units[0]}]%@CHAR[{emoji_code_units[1]}]"
+                output_strings.append(qualified_output_string)
+
+    # Print the output strings
+    printed = set()
+    for output_string in output_strings:
+        if output_string in printed: continue
+        printed.add(output_string)
+        primt(output_string)
+
+
+
+
+def create_script_to_define_emoji_characters_got_3106_much_better():
+    print("EMOJI_ENVIRONMENT_VARIABLES_CREATED_BY=fix_unicode_files.py script")
+    import ctypes
+    from emoji.unicode_codes import EMOJI_DATA
+    processed_emojis = set()  # Set to track processed emojis
+    rights = set()  # Set to track right half of = in output file so we don't make duplicates
+    output_strings = set()  # Set to handle duplicate output strings
+    for emoji, emoji_data in EMOJI_DATA.items():
+        # Fetch the base emoji without any skin tone variation
+        base_emoji = emoji.split('\u200d')[0]
+
+        # Check if the base emoji has already been processed
+        if base_emoji not in processed_emojis:
+            processed_emojis.add(base_emoji)
+
+            emoji_name_meat = emoji_data['en'].upper().replace(' ', '_').replace(':', '').replace('-', '_').replace("'", '').replace('SKIN_TONE', 'SKIN').replace('&', '_AND_')
+
+            # Convert the emoji into a ctypes wide string
+            # Then cast it to a pointer to short (16-bit) integers, and fetch the values
+            emoji_code_units = ctypes.cast(ctypes.c_wchar_p(emoji), ctypes.POINTER(ctypes.c_uint16))
+
+            # Create the output string
+            right = ""
+            for i in range(2):  # two UTF-16 code units
+                right += f"%@CHAR[{emoji_code_units[i]}]"
+
+            if right in rights:
+                continue
+            rights.add(right)
+
+            # Check if the current emoji is fully qualified
+            if emoji_data['status'] == 'fully_qualified':
+                emoji_name = f"EMOJI_{emoji_name_meat}"
+            else:
+                emoji_name = f"EMOJI_{emoji_name_meat}_UNQUALIFIED"
+
+            output_string = f"{emoji_name}={right}"
+
+            output_strings.add(output_string)  # Add to a set to handle duplicates
+
+    # Print the output strings
+    for output_string in output_strings:
+        print(output_string)
+
+
+
+# thread about this: https://jpsoft.com/forums/threads/1431-emoji-environment-variables-for-your-echoing-convenience.11618/
+def create_script_to_define_emoji_characters(): #2860, 1431 unique
+    print("EMOJI_ENVIRONMENT_VARIABLES_CREATED_BY=fix_unicode_files.py script")
+    import ctypes
+    from emoji.unicode_codes import EMOJI_DATA
+    processed_emojis = set()  # Set to track processed emojis
+    rights = set()  # Set to track right half of = in output file so we don't make duplicates
+    output_strings = set()  # Set to handle duplicate output strings
+    for emoji, emoji_data in EMOJI_DATA.items():
+        # Fetch the base emoji without any skin tone variation
+        base_emoji = emoji.split('\u200d')[0]
+
+        emoji_name_meat = emoji_data['en'].upper().replace(' ', '_').replace(':', '').replace('-', '_').replace("'", '').replace('SKIN_TONE', 'SKIN').replace('&', '_AND_')
+
+        # Construct the fully qualified and unqualified names
+        fully_qualified_name = f"EMOJI_{emoji_name_meat}"
+        unqualified_name = f"EMOJI_{emoji_name_meat}_UNQUALIFIED"
+
+        # Determine the name to be used based on the status of the emoji
+        if emoji_data['status'] == 3:           #rem emoji.fully_qualified:component = 1 fully_qualified = 2 minimally_qualified = 3 unqualified = 4
+            emoji_name = unqualified_name
+        else:
+            emoji_name = fully_qualified_name
+
+        # Check if the current version of this emoji has already been processed
+        if emoji_name in processed_emojis:
+            continue
+        processed_emojis.add(emoji_name)
+
+        # Convert the emoji into a ctypes wide string
+        # Then cast it to a pointer to short (16-bit) integers, and fetch the values
+        emoji_code_units = ctypes.cast(ctypes.c_wchar_p(emoji), ctypes.POINTER(ctypes.c_uint16))
+
+        # Create the output string
+        right = ""
+        for i in range(2):  # two UTF-16 code units
+            right += f"%@CHAR[{emoji_code_units[i]}]"
+
+        if right in rights:
+            continue
+        rights.add(right)
+
+        output_string = f"{emoji_name}={right}"
+
+        output_strings.add(output_string)  # Add to a set to handle duplicates
+
+    # Print the output strings
+    printed = set()
+    for output_string in output_strings:
+        if output_string in printed: continue
+        printed.add(output_string)
+        print(output_string)
+
+
+
+
+
+def run_internal_tests(emoji_only=False):
+    if not emoji_only: primt (f"{Fore.GREEN}{Style.BRIGHT}\nRunning internal mapping table integrity test for valid filename characters...{Style.NORMAL}")
+    internal_mapping_table_integrity_test_check_for_invalid_filename_chars(emoji_only=emoji_only)
+    if not emoji_only: primt (f"{Fore.GREEN}{Style.BRIGHT}Passed!{Style.NORMAL}")
+
+def internal_mapping_table_integrity_test_check_for_invalid_filename_chars(emoji_only=False):
     #NEW LANGUAGES might get added here
     global INVALID_WINDOWS_FILENAME_CHARACTERS, DEBUG_INTERNAL_TESTING
     global unicode_to_ascii_custom_character_mapping
@@ -710,9 +1028,10 @@ def internal_mapping_table_integrity_test_check_for_invalid_filename_chars():
     anyFailed = False
     d = 0
     t = 0
+    DEBUG_INTERNAL_TESTING=True #goat
     for dictionary_name, dictionary in dictionaries.items():
         d += 1
-        primt(f"{Fore.GREEN}{Style.BRIGHT}- Testing dictionary #{d}: {dictionary_name}")
+        if not emoji_only: primt(f"{Fore.GREEN}{Style.BRIGHT}- Testing dictionary #{d}: {dictionary_name}")
         e = 0
         for key, value in dictionary.items():
             e += 1
@@ -753,11 +1072,14 @@ def get_mode(always_use_automatic_mode=False):
     Sets:
         global variable RECURSE=True if we are in recursive mode
     """
-    global DEBUG_MODE_ARGV, RECURSE
+    global DEBUG_MODE_ARGV, RECURSE, VALID_MODES
+
     AUTOMATIC_MODE = False
 
     return_value = 'unknown'
     if DEBUG_MODE_ARGV: primt (f"sys.argv is {sys.argv}")
+
+    # see if we are in automatic mode or not
     if len(sys.argv) > 1:                                                       #if first option is 'auto', set automatic_mode and pop that option off
         arg1 = sys.argv[1].lower()
         if arg1 in ['auto', 'automatic']:
@@ -770,6 +1092,7 @@ def get_mode(always_use_automatic_mode=False):
 
     if always_use_automatic_mode: AUTOMATIC_MODE = True
 
+    # see if we are in recurse mode or not
     for arg in sys.argv:
         if arg.lower() != '/s':
             recurse=False
@@ -778,18 +1101,20 @@ def get_mode(always_use_automatic_mode=False):
             sys.argv.remove(arg)
 
 
+    # see if we are in stringmode or filemode or testmode or scriptmode not
     if len(sys.argv) > 1:
         arg1 = sys.argv[1].lower()
-        if   arg1 in ['stringmode', 'string']: return_value = 'string'
-        elif arg1 in ['filename'  , 'file'  ]: return_value = 'file'
-        elif arg1 in ['testing'   , 'test'  ]:
+        if   arg1 in ['stringmode'    ,'string']: return_value = 'string'
+        elif arg1 in ['filename'      ,'file'  ]: return_value = 'file'
+        elif arg1 in ['filename'      ,'file'  ]: return_value = 'file'
+        elif arg1 in ['testing','test','script']:
             if len(sys.argv) > 2:
-                primt (f'\n{Fore.RED}ERROR: Mode of {Style.BRIGHT}"test"{Style.NORMAL} cannot accept any other parameters as it uses an internal testing string. ')
+                primt (f'\n{Fore.RED}ERROR: Mode of {Style.BRIGHT}"{arg1}"{Style.NORMAL} cannot accept any other parameters as it uses an internal testing string. ')
                 sys.exit(666)
-            return_value = 'test'
+            if arg1 in ['testing','test']: return_value = 'test'
+            if arg1 in ['script']:         return_value = 'script'
         else:
-            valid_modes = ["string", "file", "test"]
-            primt (f'\n{Fore.RED}ERROR: Mode of {Style.BRIGHT}"{arg1}"{Style.NORMAL} is not a valid mode from the possible valid modes of: {valid_modes}. ')
+            primt (f'\n{Fore.RED}ERROR: Mode of {Style.BRIGHT}"{arg1}"{Style.NORMAL} is not a valid mode from the possible valid modes of: {VALID_MODES}. ')
             sys.exit(666)
 
     if DEBUG_MODE_ARGV: primt (f"{Fore.BLUE}* Running in {return_value} mode with arguments {sys.argv}.\n\tAUTOMATIC_MODE is {AUTOMATIC_MODE}")
@@ -800,18 +1125,17 @@ def get_mode(always_use_automatic_mode=False):
 def main():
     mode_name, mode_is_recursive, mode_is_automatic = get_mode(always_use_automatic_mode=False)
 
-    if len(sys.argv) == 1:                                                                    #MODE 1: Fix all files in the current folder, in filename mode
-        rename_files_in_current_directory    (mode="file",automatic_mode=mode_is_automatic)                #do current folder, which may change folder names
+    string=""
+    if len(sys.argv) == 1:                                                                                                #MODE 1: Fix all files in the current folder, in filename mode
+        rename_files_in_current_directory    (mode="file",automatic_mode=mode_is_automatic)                               #do current folder, which may change folder names
         if mode_is_recursive:
-            rename_files_in_current_directory(mode="file",automatic_mode=mode_is_automatic,                #then recurse the new folder names
-                                                          recursive_mode=True)
+            rename_files_in_current_directory(mode="file",automatic_mode=mode_is_automatic, recursive_mode=True)          #then recurse the new folder names
         sys.exit(0)
-    elif mode_name == 'test':                                                                 #MODE 4: Prepare to translate internal testing string
-        string_to_process = get_testing_string() + "\n\n\n TESTING STRING #2: \n\n\n" + everychar.ALMOST_EVERY_CHARACTER
-    else:
-        string_to_process = " ".join(sys.argv[2:])                                            #MODES 2 & 3: Prepare to translate our command-line string
+    elif mode_name in ['test'  ]: string = get_testing_string() + "\n\n\n TESTING STRING #2: \n\n\n" + everychar.ALMOST_EVERY_CHARACTER       #MODE 4: Prepare to translate internal testing string
+    elif mode_name in ['script']: create_script_to_define_emoji_characters()                                                                  #MODE 5: experimental
+    else:                         string = " ".join(sys.argv[2:])                                                                             #MODES 2 & 3: Prepare to translate our command-line string
 
-    just_convert_a_string(string_to_process,mode_name)                                        #MODES 2 - 4: Run the proper translation
+    just_convert_a_string(string,mode_name)                                                                    #MODES 2 - 4: Run the proper translation
 
     if mode_name == 'test': primt(f"{Style.BRIGHT}{Fore.GREEN}\n...Seems like all tests passed if we got this far!")
 
@@ -1148,8 +1472,7 @@ unicode_to_ascii_custom_character_mapping = {
 if __name__ == "__main__":
     #we do this only in main because otherwise it affects loading modules
     original_print = print                                      # Store the original print function before overriding
-    builtins.print = print_error                                # Override the built-in print function with the custom one
-
+    #goat builtins.print = print_error                               # Override the built-in print function with the custom one
     main()
 
 

@@ -61,14 +61,14 @@ REM Parameters: Process: errorlevel
     REM RECEIVED_ERRORLEVEL_1=%_?     Moved to top of file, in reverse order, for very specific reasons!  
     REM RECEIVED_ERRORLEVEL_2=%?      Moved to top of file, in reverse order, for very specific reasons!
     set OUR_ERRORLEVEL=0
-    if %DEBUG_CALLER_ERRORLEVEL gt 0 echo OUR_ERRORLEVEL is[A] "%OUR_ERRORLEVEL%", RECEIVED_ERRORLEVEL_1=%RECEIVED_ERRORLEVEL_1%, RECEIVED_ERRORLEVEL_2=%RECEIVED_ERRORLEVEL_2%, _callingerrorlevel="%_callingerrorlevel%", _callingerrorlevel2="%_callingerrorlevel2%", _callingfile="%_callingfile"
+    if %DEBUG_CALLER_ERRORLEVEL gt 0 call debug "OUR_ERRORLEVEL is[A] '%OUR_ERRORLEVEL%', RECEIVED_ERRORLEVEL_1=%RECEIVED_ERRORLEVEL_1%, RECEIVED_ERRORLEVEL_2=%RECEIVED_ERRORLEVEL_2%, _callingerrorlevel='%_callingerrorlevel%', _callingerrorlevel2='%_callingerrorlevel2%', _callingfile='%_callingfile'"
 
     if %RECEIVED_ERRORLEVEL_1 gt %OUR_ERRORLEVEL      set OUR_ERRORLEVEL=%RECEIVED_ERRORLEVEL_1
     if %RECEIVED_ERRORLEVEL_2 gt %OUR_ERRORLEVEL      set OUR_ERRORLEVEL=%RECEIVED_ERRORLEVEL_2
     if  %_callingerrorlevel   gt %OUR_ERRORLEVEL      set OUR_ERRORLEVEL=%_callingerrorlevel
     if  %_callingerrorlevel2  gt %OUR_ERRORLEVEL      set OUR_ERRORLEVEL=%_callingerrorlevel2
     
-    if %DEBUG_CALLER_ERRORLEVEL gt 0 echo OUR_ERRORLEVEL is[B] "%OUR_ERRORLEVEL%", _callingerrorlevel="%_callingerrorlevel%", _callingerrorlevel2="%_callingerrorlevel2%", _callingfile="%_callingfile"
+    if %DEBUG_CALLER_ERRORLEVEL gt 0 call debug "OUR_ERRORLEVEL is[B] '%OUR_ERRORLEVEL%', _callingerrorlevel='%_callingerrorlevel%', _callingerrorlevel2='%_callingerrorlevel2%', _callingfile='%_callingfile'"
 
 
 REM Parameters: Process: calling file
@@ -142,11 +142,6 @@ if %OUR_ERRORLEVEL% gt 0 (
     beep
     setlocal
         set NOPAUSE=0
-        pause
-        pause
-        pause
-        pause
-        pause
         call exit-maybe
     endlocal
 )

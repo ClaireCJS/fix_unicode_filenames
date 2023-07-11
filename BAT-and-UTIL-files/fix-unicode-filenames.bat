@@ -21,6 +21,8 @@ REM Capture errorlevel and automatically rerun if we fail, automatically delete 
         set LOG=fix-unicode-filenames.log
         if exist %LOG% (
             %COLOR_REMOVAL%
+            echos %FAINT_ON%%OVERSTRIKE_ON%
             mv %LOG% c:\recycled\%LOG.%_DATETIME.%_PID.log
+            echos %FAINT_OFF%%OVERSTRIKE_OFF%
         )
     )
