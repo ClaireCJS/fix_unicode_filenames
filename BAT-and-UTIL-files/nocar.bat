@@ -1,1 +1,1 @@
-@change-escape-character-to-normal %*
+@call change-command-separator-character-to-normal %*

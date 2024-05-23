@@ -1,1 +1,1 @@
-@call  change-escape-character-to-tilde.bat %*
+@call change-command-separator-character-to-tilde.bat %*

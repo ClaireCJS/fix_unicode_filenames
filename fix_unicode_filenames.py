@@ -1,3 +1,4 @@
+
 """
      *** SAVE CODE CHANGES TO A .SAVETEXT FILE FIRST AND CHECK ENCODING BEFORE OVERWRITING!!! IT IS VERY EASY TO CORRUPT THIS FILE!!! TOO EASY!!! ***
      *** SAVE CODE CHANGES TO A .SAVETEXT FILE FIRST AND CHECK ENCODING BEFORE OVERWRITING!!! IT IS VERY EASY TO CORRUPT THIS FILE!!! TOO EASY!!! ***
@@ -457,13 +458,19 @@ def translate_emoji_to_ascii(char):
     return demojized
 
 
+
 def get_name_from_hex(unicode_hex):
     unicode_hex = unicode_hex.replace('\\u', '')  # Remove the Unicode escape sequence part
+    unicode_hex = unicode_hex.replace('\\U', '')  # Remove the Unicode escape sequence part     #2024/05/23 situation
     unicode_char = chr(int(unicode_hex, 16))  # Convert hex string to Unicode character
     try:
         return unicodedata.name(unicode_char)
     except ValueError:  # Raised when the character does not have a name
-        return "[ERROR: get_name_from_hex fail]"
+        unicode_char = chr(int("000" + unicode_hex, 16))  # Convert hex string to Unicode character
+        try:
+            return unicodedata.name(unicode_char)
+        except ValueError:  # Raised when the character does not have a name
+            return f"[ERROR: get_name_from_hex fail for hex={unicode_hex},char={unicode_char}]"
 
 
 
@@ -966,7 +973,7 @@ def create_script_to_define_emoji_characters(): #2860, 1431 unique
         # Fetch the base emoji without any skin tone variation
         base_emoji = emoji.split('\u200d')[0]
 
-        emoji_name_meat = emoji_data['en'].upper().replace(' ', '_').replace(':', '').replace('-', '_').replace("'", '').replace('SKIN_TONE', 'SKIN').replace('&', '_AND_')
+        emoji_name_meat = emoji_data['en'].upper().replace(' ', '_').replace(':', '').replace('-', '_').replace("'", '').replace('SKIN_TONE', 'SKIN').replace('&', '_AND_').replace('�','')
 
         # Construct the fully qualified and unqualified names
         fully_qualified_name = f"EMOJI_{emoji_name_meat}"
@@ -1428,10 +1435,14 @@ unicode_to_ascii_custom_character_mapping = {
     #it is called "ZERO WIDTH JOINER" and used in Indian languages: https://www.fileformat.info/info/unicode/char/200d/index.htm
     '\u200d     ': ['|',' '],  #deciding what to do with this character was difficult
 
+
     #these mfs exposed a python bug where certain characters aren't usable as keys in a dictionary
         '\u1f1fe': ["Y",],
     'code u1f1fe': ["Y",],                          #workaround
     'code u008d' : ["{reverse line feed}",],        #workaround
+
+    '\U0001fabd' :["_"],            #2024/05/23 ran nto this not sure what it is
+    '\U0001fae7' :["_"],            #2024/05/23 ran nto this not sure what it is
 
 
 
@@ -1457,7 +1468,7 @@ unicode_to_ascii_custom_character_mapping = {
     "\u29F8":     ["/","--"],
     "／":         ["/","--"],                   #what strange new slash is this?
 
-    #"":      ["",],
+    "♬":      ["♫",],                          #unicode 'beamed music note' to ascii music note
     #"":      ["",],
     #"":      ["",],
     #"":      ["",],
