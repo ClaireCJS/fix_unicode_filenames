@@ -1,22 +1,31 @@
 @Echo Off
 
-:REQUIRES: set-colors.bat (to define certain environment variables that represent ANSI character control sequences)
+:REQUIRES: set-colors.bat to be run first —— to define certain environment variables that represent ANSI character control sequences
 
 :USAGE: call print-message MESSAGE_TYPE "message" [0|1]               - arg1=message/colorType, arg2=message, arg3=pause (1) or not (0)
-:USAGE: call print-message TEST                                       - to run internal test suite
-:USAGE: call print-message message without quotes                     - no 3rd arg of 0|1 will cause the whole line to be treated as a message without a message type. This is really only meant for processing malformed calls. We're not supposed to do it this way.
-:USAGE: NOTE: arg1 must match an existing message type i.e. "ERROR" "WARNING" "DEBUG" "SUCCESS" "IMPORTANT" "INPUT" "LESS_IMPORTANT"
-:USAGE: ENVIRONMENT: set PRINTMESSAGE_OPT_SUPPRESS_AUDIO=1  to suppress audio effects. Must be set each call.
-:USAGE: ENVIRONMENT:                         If SLEEPING=1, we suppress audio effects as well! This doesn't need to be set each call.
-:USAGE: ENVIRONMENT:              if NEWLINE_REPLACEMENT=1, we replace \n with newlines so that the message can becomes longer than 1 line. Must be set each call.
-:USAGE: MESSAGE CONTENTS:    Use "{PERCENT}" in your message contents to display a % sign, if you have problems.
-
+:USAGE:                    ^^^^^^^^^^^^—— MESSAGE_TYPE must match an existing message from the MESSAGE_TYPES list
+:USAGE:                                  ^^^^^^^———— use "{PERCENT}" in your message to insert a   "%"   into your message
+:USAGE:                                  ^^^^^^^———— use     "\n"    in your message to insert a newline into your message but only if %NEWLINE_REPLACEMENT% is set to 1, which must be done EACH time you do this
+:USAGE:
+:USAGE: call print-message demo      ————— to run demo suite
+:USAGE: call print-message TEST      ————— to run internal test suite
+:USAGE: call print-message TEST fast ————— to run internal test suite without a pause for keystroke in between each one
+:USAGE:                                           
+:USAGE: call print-message message without quotes —— WRONG!! —— no 3rd arg of 0|1 will cause the whole line to be treated as a message without a message type. This is really only meant for processing malformed calls in a non-execution-breaking way. We're NOT supposed to do it this way.
+:USAGE:
+:USAGE: ENVIRONMENT: set PRINTMESSAGE_OPT_SUPPRESS_AUDIO=1 to suppress audio effects. DOES INDEED need to be set each call.
+:USAGE: ENVIRONMENT: set                        SLEEPING=1 to suppress audio effects. DOES  *NOT* need to be set each call.
+:USAGE: ENVIRONMENT: set             NEWLINE_REPLACEMENT=1 to replace \n w/ newlines. DOES INDEED need to be set each call.
+:USAGE:
+:USAGE: NOTE: 'hand' and 'question' windows system sounds are currently used 
+:USAGE:           —— hear them with the 'beep hand' & 'beep question' commands
+:USAGE:           ——  set them with the Control Panel->Sounds menu
 
 
 
 rem MESSAGE TYPES LIST: PLEASE ADD ANY NEW MESSAGE TYPES TO THIS LIST BEFORE IMPLEMENTING THEM!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    set MESSAGE_TYPES=FATAL_ERROR ERROR_FATAL ERROR WARNING WARNING_LESS WARNING_SOFT ALARM DEBUG IMPORTANT IMPORTANT_LESS LESS_IMPORTANT CELEBRATION COMPLETION SUCCESS REMOVAL ADVICE NORMAL UNIMPORTANT SUBTLE
-    set MESSAGE_TYPES_WITHOUT_ALIASES=FATAL_ERROR ERROR WARNING WARNING_LESS ALARM DEBUG IMPORTANT IMPORTANT_LESS CELEBRATION COMPLETION SUCCESS REMOVAL ADVICE NORMAL UNIMPORTANT SUBTLE
+    set                 MESSAGE_TYPES=WARNING WARNING_LESS WARNING_SOFT ALARM REMOVAL IMPORTANT IMPORTANT_LESS LESS_IMPORTANT ADVICE NORMAL DEBUG UNIMPORTANT SUBTLE COMPLETION SUCCESS CELEBRATION FATAL_ERROR ERROR_FATAL ERROR 
+    set MESSAGE_TYPES_WITHOUT_ALIASES=WARNING WARNING_LESS              ALARM REMOVAL IMPORTANT IMPORTANT_LESS                ADVICE NORMAL DEBUG UNIMPORTANT SUBTLE COMPLETION SUCCESS CELEBRATION FATAL_ERROR             ERROR 
     if "%1" eq "vars_only" (goto :END) %+ rem we like to grab these 2 env varibles when environm is run, even before print-message is ever run, via this call: if not defined MESSAGE_TYPES (call print-message vars_only)
     rem ^^^ Gther all these into a nice looking environment variable where they are each appropriately ansi-colored with: gather-message-types-into-pretty-environment-variable.bat
 
@@ -43,6 +52,9 @@ REM Ensure correct environment
     setdos /x0
 
 REM Process parameters
+    if "%PM_PARAM2%" ne "fast" (set   FAST=0   )                        %+ REM used for "test fast" 
+    if "%PM_PARAM2%" eq "fast" (set   FAST=1   )                        %+ REM used for "test fast" 
+    if "%PM_PARAM1%" eq "demo" (goto :DemoSuite)
     if "%PM_PARAM1%" eq "test" (goto :TestSuite)
     if "%PM_PARAM1%" eq "none" (goto :None     )
     rem if "%PM_PARAM3%" eq ""                     (
@@ -53,19 +65,19 @@ REM Process parameters
     rem         REM changed my mind: set DO_PAUSE=1                         we pause by default becuase calling this way means the user doesn't know what they are doing quite as well
     rem )
     set MESSAGE=Null
-                                 set MESSAGE=%@UNQUOTE[`%PM_PARAMS2`]
-    if "%PM_PARAM3%" eq ""      (set MESSAGE=%@UNQUOTE[`%PM_PARAM2%`])
-    if "%PM_PARAM3%" eq "1"     (set DO_PAUSE=1)
-    if "%PM_PARAM2%" eq "yes"   (set DO_PAUSE=1)                    %+ REM capture a few potential call mistakes
-    if "%PM_PARAM2%" eq "pause" (set DO_PAUSE=1)                    %+ REM capture a few potential call mistakes
-    if %DEBUG_PRINTMESSAGE% eq 1 (echo %ANSI_COLOR_DEBUG%- debug branch 1 because %%PM_PARAM3 is %PM_PARAM3 - btw %%PM_PARAM2=%PM_PARAM2 - message is now %MESSAGE%ANSI_RESET% )
-    set TYPE=%PM_PARAM1%                                            %+ REM both the color and message type
-
-
+    set TYPE=%PM_PARAM1%                                                       %+ REM both the color and message type, actually
+                                       set MESSAGE=%@UNQUOTE[`%PM_PARAMS2`]
+    if "%PM_PARAM3%"       eq ""      (set MESSAGE=%@UNQUOTE[`%PM_PARAM2%`])
+    if "%PM_PARAM3%"       eq "1"     (set DO_PAUSE=1)
+    if "%PM_PARAM2%"       eq "yes"   (set DO_PAUSE=1)                         %+ REM capture a few potential call mistakes
+    if "%PM_PARAM2%"       eq "pause" (set DO_PAUSE=1)                         %+ REM capture a few potential call mistakes
+    if %DEBUG_PRINTMESSAGE eq  1      (echo %ANSI_COLOR_DEBUG%- debug branch 1 because %%PM_PARAM3 is %PM_PARAM3 - btw %%PM_PARAM2=%PM_PARAM2 - message is now %MESSAGE%ANSI_RESET% )
     if %DEBUG_PRINTMESSAGE% eq 1 (echo DEBUG: TYPE=%TYPE%,DO_PAUSE=%DO_PAUSE%,MESSAGE=%MESSAGE%)
+
     if defined COLOR_%TYPE% (
         set OUR_COLORTOUSE=%[COLOR_%TYPE%]
         set OUR_ANSICOLORTOUSE=%[ANSI_COLOR_%TYPE%]
+        rem echo set OUR_ANSICOLORTOUSE=%%ANSI_COLOR_%TYPE%
      )
     if not defined OUR_COLORTOUSE  (
         if %DEBUG_PRINTMESSAGE% eq 1 (echo %ANSI_COLOR_DEBUG% %RED_FLAG% Oops! Let's try setting OUR_COLORTOUSE to %%COLOR_%@UPPER[%PM_PARAM1])
@@ -85,7 +97,7 @@ REM Validate parameters
         if not defined COLOR_%TYPE%  (call fatal_error "This variable COLOR_%TYPE% should be an existing COLOR_* variable in our environment")
         if not defined MESSAGE       (call fatal_error "$0 called without a message")
         call validate-in-path beep.bat 
-        REM call validate-environment-variables BLINK_ON BLINK_OFF REVERSE_ON REVERSE_OFF ITALICS_ON ITALICS_OFF BIG_TEXT_LINE_1 BIG_TEXT_LINE_2 OUR_COLORTOUSE DO_PAUSE EMOJI_TRUMPET ANSI_RESET EMOJI_FLEUR_DE_LIS ANSI_COLOR_WARNING ANSI_COLOR_IMPORTANT RED_FLAG EMOJI_WARNING BIG_TOP_ON BIG_BOT_ON FAINT_ON FAINT_OFF
+        call validate-environment-variables BLINK_ON BLINK_OFF REVERSE_ON REVERSE_OFF ITALICS_ON ITALICS_OFF BIG_TEXT_LINE_1 BIG_TEXT_LINE_2 OUR_COLORTOUSE DO_PAUSE EMOJI_TRUMPET ANSI_RESET EMOJI_FLEUR_DE_LIS ANSI_COLOR_WARNING ANSI_COLOR_IMPORTANT RED_FLAG EMOJI_WARNING BIG_TOP_ON BIG_BOT_ON FAINT_ON FAINT_OFF
         set VALIDATED_PRINTMESSAGE_ENV=1
     )
 
@@ -117,8 +129,8 @@ REM Behavior overides and message decorators depending on the type of message?
     if  "%TYPE%"  eq "ADVICE"         (set DECORATOR_LEFT=%EMOJI_BACKHAND_INDEX_POINTING_RIGHT% `` %+ set DECORATOR_RIGHT= %EMOJI_BACKHAND_INDEX_POINTING_LEFT%) 
     if  "%TYPE%"  eq "NORMAL"         (set DECORATOR_LEFT=              %+ set DECORATOR_RIGHT=) 
     if  "%TYPE%"  eq "DEBUG"          (set DECORATOR_LEFT=- DEBUG: ``   %+ set DECORATOR_RIGHT=)
-    if  "%TYPE%"  eq "LESS_IMPORTANT" (set DECORATOR_LEFT=%STAR% ``     %+ set DECORATOR_RIGHT=)
-    if  "%TYPE%"  eq "IMPORTANT_LESS" (set DECORATOR_LEFT=%STAR% ``     %+ set DECORATOR_RIGHT=)
+    if  "%TYPE%"  eq "LESS_IMPORTANT" (set DECORATOR_LEFT=%STAR% %ANSI_COLOR_IMPORTANT_LESS%``     %+ set DECORATOR_RIGHT=) %+ rem some bug was making the color bold, so we fixed it by putting the ansi color here, even though that's not how this is designed to be used
+    if  "%TYPE%"  eq "IMPORTANT_LESS" (set DECORATOR_LEFT=%STAR% %ANSI_COLOR_IMPORTANT_LESS%``     %+ set DECORATOR_RIGHT=) %+ rem some bug was making the color bold, so we fixed it by putting the ansi color here, even though that's not how this is designed to be used
     rem "%TYPE%"  eq "IMPORTANT"      (set DECORATOR_LEFT=%ANSI_RED%%EMOJI_TRUMPET_COLORABLE%%@ANSI_FG[255,127,0]%EMOJI_TRUMPET_COLORABLE%%@ansi_fg[212,234,0]%EMOJI_TRUMPET_COLORABLE%%ANSI_BRIGHT_GREEN%%EMOJI_TRUMPET_COLORABLE%%ANSI_BRIGHT_BLUE%%EMOJI_TRUMPET_COLORABLE%%@ANSI_FG[200,0,200]%EMOJI_TRUMPET_COLORABLE%  %ANSI_RESET%%@ANSI_FG[255,0,0]%reverse_on%%blink_on%%EMOJI_FLEUR_DE_LIS%%blink_off%%reverse_off%%ANSI_COLOR_IMPORTANT% `` %+ set DECORATOR_RIGHT= %ANSI_RESET%%@ANSI_FG[255,0,0]%reverse_on%%blink_on%%EMOJI_FLEUR_DE_LIS%%blink_off%%reverse_off%%ANSI_COLOR_IMPORTANT%  %@ANSI_FG[200,0,200]%EMOJI_TRUMPET_FLIPPED%%ANSI_BRIGHT_BLUE%%EMOJI_TRUMPET_FLIPPED%%ANSI_BRIGHT_GREEN%%EMOJI_TRUMPET_FLIPPED%%@ansi_fg[212,234,0]%EMOJI_TRUMPET_FLIPPED%%@ANSI_FG[255,127,0]%EMOJI_TRUMPET_FLIPPED%%ANSI_RED%%EMOJI_TRUMPET_FLIPPED%)
     rem "%TYPE%"  eq "IMPORTANT"      (set DECORATOR_LEFT=%ANSI_RED%%EMOJI_TRUMPET_COLORABLE%%@ANSI_FG[255,127,0]%EMOJI_TRUMPET_COLORABLE%%@ansi_fg[212,234,0]%EMOJI_TRUMPET_COLORABLE%%ANSI_BRIGHT_GREEN%%EMOJI_TRUMPET_COLORABLE%%ANSI_BRIGHT_BLUE%%EMOJI_TRUMPET_COLORABLE%%@ANSI_FG[200,0,200]%EMOJI_TRUMPET_COLORABLE%  %ANSI_RESET%%BLINKING_PENTAGRAM%%ANSI_COLOR_IMPORTANT% %DOUBLE_UNDERLINE_ON%`` %+ set DECORATOR_RIGHT=%DOUBLE_UNDERLINE_OFF% %ANSI_RESET%%BLINKING_PENTAGRAM%%ANSI_COLOR_IMPORTANT%  %@ANSI_FG[200,0,200]%EMOJI_TRUMPET_FLIPPED%%ANSI_BRIGHT_BLUE%%EMOJI_TRUMPET_FLIPPED%%ANSI_BRIGHT_GREEN%%EMOJI_TRUMPET_FLIPPED%%@ansi_fg[212,234,0]%EMOJI_TRUMPET_FLIPPED%%@ANSI_FG[255,127,0]%EMOJI_TRUMPET_FLIPPED%%ANSI_RED%%EMOJI_TRUMPET_FLIPPED%)
     if  "%TYPE%"  eq "IMPORTANT"      (set DECORATOR_LEFT=%ANSI_RED%%EMOJI_TRUMPET_COLORABLE%%@ANSI_FG[255,127,0]%EMOJI_TRUMPET_COLORABLE%%@ansi_fg[212,234,0]%EMOJI_TRUMPET_COLORABLE%%ANSI_BRIGHT_GREEN%%EMOJI_TRUMPET_COLORABLE%%ANSI_BRIGHT_BLUE%%EMOJI_TRUMPET_COLORABLE%%@ANSI_FG[200,0,200]%EMOJI_TRUMPET_COLORABLE% %ANSI_RESET%%BLINKING_PENTAGRAM%%ANSI_COLOR_IMPORTANT%  `` %+ set DECORATOR_RIGHT=  %ANSI_RESET%%BLINKING_PENTAGRAM%%ANSI_COLOR_IMPORTANT%  %@ANSI_FG[200,0,200]%EMOJI_TRUMPET_FLIPPED%%ANSI_BRIGHT_BLUE%%EMOJI_TRUMPET_FLIPPED%%ANSI_BRIGHT_GREEN%%EMOJI_TRUMPET_FLIPPED%%@ansi_fg[212,234,0]%EMOJI_TRUMPET_FLIPPED%%@ANSI_FG[255,127,0]%EMOJI_TRUMPET_FLIPPED%%ANSI_RED%%EMOJI_TRUMPET_FLIPPED%)
@@ -180,16 +192,34 @@ REM Pre-Message determination of how many times we will display the message:
 REM Actually display the message:
         setdos /x-6
 
-        REM display our opening big-header, if we are in big-header mode
-        if %BIG_HEADER eq 1 (set COLOR_TO_USE=%OUR_COLORTOUSE% %+ call bigecho %@ANSI_MOVE_TO_COL[0]****%DECORATOR_LEFT%%@UPPER[%TYPE%]%DECORATOR_RIGHT%****)
-
         rem Assemble our message, including resetting the color via ansi codes (%OUR_ANSICOLORTOUSE%) before adding the right decorator, in case the color was changed within the message itself
         rem DECORATED_MESSAGE=%DECORATOR_LEFT%%MESSAGE%%DECORATOR_RIGHT% ———————————— this was the old way
         set DECORATED_MESSAGE=%DECORATOR_LEFT%%MESSAGE%%OUR_ANSICOLORTOUSE%%DECORATOR_RIGHT%
 
+        REM display our opening big-header, if we are in big-header mode
+        rem production: if %BIG_HEADER eq 1 (set COLOR_TO_USE=%OUR_COLORTOUSE% %+ call bigecho %@ANSI_MOVE_TO_COL[0]****%DECORATOR_LEFT%%@UPPER[%TYPE%]%DECORATOR_RIGHT%****%ANSI_RESET%%ANSI_ERASE_TO_EOL%)
+        rem test:
+
+        if %BIG_HEADER eq 1 (
+            SET BIG_ECHO_MSG_TO_USE=%our_ansicolortouse%****%DECORATOR_LEFT%%@UPPER[%TYPE%]%DECORATOR_RIGHT%****
+            rem There was a lot of weirdness with background color bleedthrough when doing this:
+            rem call bigecho %BIG_ECHO_MSG_TO_USE%
+            rem I opened this bug report with Windows Terminal to fix it: 
+            rem https://github.com/microsoft/terminal/issues/17771
+            rem We assemble the double-height lines manually here, without using bigecho.bat, to have the most control over that bug:
+            echo %BIG_TOP%%BIG_ECHO_MSG_TO_USE%%BIG_TEXT_END%%ANSI_RESET%
+            echo %BIG_BOT%%BIG_ECHO_MSG_TO_USE%%BIG_TEXT_END%%ANSI_RESET%%ANSI_EOL%
+        )
+
         REM repeat the message the appropriate number of times
         for %msgNum in (%HOW_MANY%) do (           
             REM handle pre-message formatting [color/blinking/reverse/italics/faint], based on what type of message and which message in the sequence of repeated messages it is
+
+            REM Special decorators that are only for the message itself, not the header/fooder:
+            if "%TYPE%" eq "FATAL_ERROR" (echos                ``)
+            if "%TYPE%" eq       "ERROR" (echos       ``)
+
+
             %OUR_COLORTOUSE%
             if  %BIG_HEADER eq    1           (echos %BLINK_ON%)
             if "%TYPE%"     eq "SUBTLE"       (echos %FAINT_ON%)
@@ -214,25 +244,30 @@ REM Actually display the message:
             REM HACK: Decorators with ">" in them need to be manually outputted here at the last minute to avoid issues with ">" being the redirection character, though setdos could work around this
             if "%TYPE%" eq "ADVICE" (echos `----> `)
 
+
             REM actually print the message:
-            echos %DECORATED_MESSAGE% 
+            echos %DECORATED_MESSAGE%
 
             REM handle post-message formatting
-            if "%TYPE%"     eq "UNIMPORTANT" (echos %FAINT_OFF%)
             if "%TYPE%"     eq "SUBTLE"      (echos %FAINT_OFF%)
+            if "%TYPE%"     eq "UNIMPORTANT" (echos %FAINT_OFF%)
             if "%TYPE%"     eq "SUCCESS"     (echos %BOLD_OFF%)
             if "%TYPE%"     eq "CELEBRATION_OLD_CODE_TODO_REMOVE" (
                 if 1 == %msgNum% (echos     ``)
                 if 2 == %msgNum% (echos     ``)
             )
-            if  %BIG_HEADER eq    1          (echos %BLINK_OFF%)
+            rem test relying on the ansi_reset below instead: 
+            rem if  %BIG_HEADER eq    1          (echos %BLINK_OFF%)
 
-            REM setting color to normal (black on black) and using the erase-to-end-of-line sequence fixes the Windows Termina+TCC bug where a big of the background color is shown in the rightmost column
-            echo %ANSI_COLOR_NORMAL%%ANSI_ERASE_TO_EOL%`` 
+            REM setting color to normal (white on black) and using the erase-to-end-of-line sequence helps with the Windows Termina+TCC bug(?) where a bit of the background color is shown in the rightmost column
+            echo %ANSI_COLOR_NORMAL%%ANSI_RESET%%ANSI_ERASE_TO_EOL%`` 
         )
         REM display our closing big-header, if we are in big-header mode
-        if %BIG_HEADER eq 1 (set COLOR_TO_USE=%OUR_COLORTOUSE% %+ call bigecho ****%DECORATOR_LEFT%%@UPPER[%TYPE%]%DECORATOR_RIGHT%****)
-
+        rem if %BIG_HEADER eq 1 (set COLOR_TO_USE=%OUR_COLORTOUSE% %+ call bigecho ****%DECORATOR_LEFT%%@UPPER[%TYPE%]%[DECORATOR_RIGHT]****%ANSI_RESET%%ANSI_ERASE_TO_EOL%)
+        if %BIG_HEADER eq 1 (
+            echo %BIG_TOP%%BIG_ECHO_MSG_TO_USE%%BIG_TEXT_END%%ANSI_RESET%
+            echo %BIG_BOT%%BIG_ECHO_MSG_TO_USE%%BIG_TEXT_END%%ANSI_RESET%%ANSI_EOL%
+        )
 
 
 REM Post-message delays and pauses
@@ -280,34 +315,72 @@ REM For errors, give chance to gracefully exit the script (no more mashing of ct
         )
 
 REM Hit user with the 'pause' prompt several times, to prevent accidental passthrough from previous key mashing
-        if %DO_PAUSE% gt 0 (echo. %+ for %pauseNum in (1 2 3 4 5) do (call randcolor %+ *pause %+ %COLOR_NORMAL%))
-        if %DO_PAUSE% gt 1 (         for %pauseNum in (1 2 3 4 5) do (call randcolor %+ *pause %+ %COLOR_NORMAL%))
+        unset /q loop
+        if %DO_PAUSE gt 0 (set           loop=4 3 2 1 0)
+        if %DO_PAUSE gt 1 (set loop=9 8 7 6 5 4 3 2 1 0)
+        if defined loop (for %pauseNum in (%loop%) do (echos    %pause% %ANSI_RESET%%blink_on%%ansi_red%%ansi_save_position%[%ansi_bright_red%%pauseNum%%ansi_red%]%blink_off% %@ANSI_RANDFG_SOFT[]%@ANSI_RANDBG_SOFT[]`` %+ echos Press any key when ready... %+ *pause /c >nul %+ echo %@ansi_move_left[3] %CHECK%%@ansi_move_up[1]%@ansi_move_left[31]%ansi_restore_positon%%@ansi_move_down[1]%ansi_reset%%ansi_color_green%%faint_on%[%pauseNum%]%ansi_reset%%@ansi_move_right[28]))
+
 
 goto :END
 
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        :DemoSuite
+                cls
+                echo.
+                call fatal_error    "We're DONE! There is NO HOPE! STOP!!!"
+                call error          "Uh-oh! This might be broken!"
+                call alarm          "Take notice! We need attention!"
+                call warning        "This may do a bad thing!"
+                call warning_less   "This may do a thing that maybe might be a little bad..."
+                call removal        "temp files have been deleted"
+                echo.
+                call important      "narration of main tasks"
+                call important_less "narration of subtasks"
+                call unimportant    "not sure if we need to bother saying this anymore"
+                call subtle         "pretty sure i don't need to say this anymore"
+                echo.
+                call advice         "some good advice to take into consideration right now"
+                call debug          "the value for %foo[1] is 4329.9342093 right now"
+                echo.
+                call completion     "subtask completed"
+                call success        "main task successful"
+                call celebration    "entire script is done, let's have cake!"
+                echo.
+                call normal         "we don't use this one"
+                echo.
+        goto :END
 
         :TestSuite
-                call validate-in-path colors.bat important 
+                call validate-in-path important 
+                set  my_fast=%fast
+                if   1  ne %myfast (repeat 3 echo.)
                 cls
-                call colors silent %+ REM sets ALL_COLORS
                 echo.
-                call important "System print test - press N to go from one to the next --- any other key will cause tests to not complete -- if you get stuck hit enter once, then N -- if that doesn't work hit enter twice, then N"
-                echo.
-                pause>nul
-                for %clr in (%ALL_COLORS%) (
+                if 1 ne %my_fast (
+                    call important "System print test - press N to go from one to the next --- any other key will cause tests to not complete -- if you get stuck hit enter once, then N -- if that doesn't work hit enter twice, then N"
+                    echo.
+                    pause>nul
+                )
+
+                rem      use %MESSAGE_TYPES instead of %MESSAGE_TYPES_WITHOUT_ALIASES to test alias message types:
+                for %clr in (%MESSAGE_TYPES_WITHOUT_ALIASES%) (   
                     set clr4print=%clr%
                     REM if "%clr%" eq "question"    set "clr4print=%CLR%    (windows: 'Question')"
-                    echo.
-                    cls
-                    call important  "about to test %clr4print:"
-                    echo.
-                    pause>nul
-                    cls
-                    call print-message %clr "%clr4print"
+
+                    if 1 ne %my_fast (
+                        echo.
+                        cls
+                        call important  "about to test %clr4print:"
+                        echo.
+                        pause>nul
+                        cls
+                    )
+                    if 1 eq %my_fast (echo.)                    
+                    call print-message %clr "This is a %clr4print message"
                     REM sleep 1
-                    pause>nul
+                    if 1 ne %my_fast (pause>nul)
+                    if 1 eq %my_fast (echo. %+ call divider)
                 )
         goto :END
 

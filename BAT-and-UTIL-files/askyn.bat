@@ -15,6 +15,7 @@ if "%ASK_QUESTION%" eq "help" .or. "%ASK_QUESTION%" eq "--help" .or. "%ASK_QUEST
     echo USAGE: askyn test - run our test suite
     goto :END
 )
+title %EMOJI_RED_QUESTION_MARK%%@UNQUOTE[%ASK_QUESTION%]%EMOJI_RED_QUESTION_MARK%
 
 :USAGE: askyn "question" "yes|no" - 1st param is question, 2nd is yes/no defult, 3rd is wait_time before expiration (NULL for no wait time), 4th is "no_enter" do disallow enter key, 5th is "big" to make this a big-text prompt
 :SIDE-EFFECTS: sets ANSWER to Y or N, and sets DO_IT to 1 (if yes) or 0 (if no)
@@ -26,19 +27,27 @@ REM Test suite special case, including testing for the facts that higher timer v
         if "%1" ne "test" goto :Not_A_Test
                 cls
                 call important "About to do %0 test suite"
-                echo ———————————————————————————————————————————————————————————————
-                call AskYN         "  Big question defaulting to  no"  no    0 big
-                call AskYN         "  Big question defaulting to yes" yes    0 big
-                call AskYN         "Timed question defaulting to  no"  no    9 big
-                call AskYN         "Timed question defaulting to yes" yes    9 big
-                call AskYN         "TIMED question defaulting to  no"  no 9999 big
-                call AskYN         "TIMED question defaulting to yes" yes 9999 big
-                call AskYN "Generic       question defaulting to yes" yes
-                call AskYN "Generic       question defaulting to  no"  no
-                call AskYN "Generic timed question defaulting to yes" yes    9
-                call AskYN "Generic timed question defaulting to  no"  no    9
-                call AskYN "Generic TIMED question defaulting to yes" yes 9999
-                call AskYN "Generic TIMED question defaulting to  no"  no 9999
+                echo ———————————————————————————————————————————————————————————————————
+                call AskYN         "  Big question defaulting to  no d:0"  no      0 big
+                call AskYN         "  Big question defaulting to yes d:0" yes      0 big
+                call AskYN         "Timed question defaulting to  no d:1"  no      9 big
+                call AskYN         "Timed question defaulting to yes d:1" yes      9 big
+                call AskYN         "TIMED question defaulting to  no d:2"  no     99 big
+                call AskYN         "TIMED question defaulting to yes d:2" yes     99 big
+                call AskYN         "TIMED question defaulting to  no d:3"  no    999 big
+                call AskYN         "TIMED question defaulting to yes d:3" yes    999 big
+                call AskYN         "TIMED question defaulting to  no d:4"  no   9999 big
+                call AskYN         "TIMED question defaulting to yes d:4" yes   9999 big
+                call AskYN         "TIMED question defaulting to  no d:5"  no  99999 big
+                call AskYN         "TIMED question defaulting to yes d:5" yes  99999 big
+                call AskYN         "TIMED question defaulting to  no d:6"  no 999999 big
+                call AskYN         "TIMED question defaulting to yes d:6" yes 999999 big
+                call AskYN "Generic       question defaulting to yes"     yes
+                call AskYN "Generic       question defaulting to  no"      no
+                call AskYN "Generic timed question defaulting to yes"     yes      9
+                call AskYN "Generic timed question defaulting to  no"      no      9
+                call AskYN "Generic TIMED question defaulting to yes"     yes   9999
+                call AskYN "Generic TIMED question defaulting to  no"      no   9999
                 goto :END
         :Not_A_Test
 
@@ -92,6 +101,7 @@ REM Build the question prompt:
         if "%default_answer" eq "no"  set PRETTY_QUESTION=%pretty_question%%bold%%underline%%ANSI_COLOR_PROMPT%N%underline_off%%bold_off%
                                       set PRETTY_QUESTION=%pretty_question%%@ANSI_FG_RGB[%BRACKET_COLOR]]%EMOJI_RED_QUESTION_MARK%
                                       set PRETTY_QUESTION_ANSWERED=%@REPLACE[%BLINK_ON%,,%PRETTY_QUESTION] %+ rem an unblinking version, so the question mark that blinks before we answer is still displayed——but stops blinking after we answer the question 
+title %@STRIPANSI[%PRETTY_QUESTION]
 
 
 REM Which keys will we allow?
@@ -143,16 +153,20 @@ REM Process the enter key into our default answer:
             call print-if-debug "enter key processing, answer is now '%ANSWER%'"
         ) 
 
+REM Title
+title %@STRIPANSI[%PRETTY_QUESTION] %A
+
 
 REM Set our 2 major return values that are referred to from calling scripts:
         if "%OUR_ANSWER%" eq "Y" .or. "%OUR_ANSWER%" eq "yes" (set DO_IT=1 %+ set ANSWER=Y)
         if "%OUR_ANSWER%" eq "N" .or. "%OUR_ANSWER%" eq "no"  (set DO_IT=0 %+ set ANSWER=N) 
 
 
-REM Generate "pretty" answers:
+REM Generate "pretty" answers & update the title:
         if "%ANSWER" eq "Y" .or. "%ANSWER" eq "yes" (set PRETTY_ANSWER=%ANSI_BRIGHT_GREEN%%ITALICS_ON%%DOUBLE_UNDERLINE_ON%Yes%DOUBLE_UNDERLINE_OFF%%BLINK_ON%!%BLINK_OFF%%ITALICS_OFF%)
         if "%ANSWER" eq "N" .or. "%ANSWER" eq "no"  (set PRETTY_ANSWER=%ANSI_BRIGHT_RED%%ITALICS_ON%%DOUBLE_UNDERLINE_ON%No%DOUBLE_UNDERLINE_OFF%%BLINK_ON%!%BLINK_OFF%%ITALICS_OFF%)
         call print-if-debug "our_answer is '%OUR_ANSWER', default_answer is '%DEFAULT_ANSWER%', answer is '%ANSWER%', PRETTY_ANSWER is '%PRETTY_ANSWER%'"
+        title %@REPLACE[%EMOJI_RED_QUESTION_MARK,,%@STRIPANSI[%@UNQUOTE[%ASK_QUESTION]? %EMDASH% %PRETTY_ANSWER%]]
 
 
 REM Change "pretty" question so that the auto-question mark is no longer blinking because it has now been answered, and
@@ -170,6 +184,8 @@ REM Print our "pretty" answers in the right spots (challenging with double-heigh
                 if %WAIT_TIME gt 10000   (set MOVE_LEFT_BY=%@eval[%MOVE_LEFT_BY + 1])
                 if %WAIT_TIME gt 100000  (set MOVE_LEFT_BY=%@eval[%MOVE_LEFT_BY + 1])
                 if %WAIT_TIME gt 1000000 (set MOVE_LEFT_BY=%@eval[%MOVE_LEFT_BY + 1])
+                if %LEFT_MORE gt 0       (set MOVE_LEFT_BY=%@eval[%MOVE_LEFT_BY + %LEFT_MORE])
+                rem LEFT_MORE is a secret kludge in case the cursor doesn't quite move to the left enough
             )
             echo %@ANSI_MOVE_LEFT[%MOVE_LEFT_BY]%ANSI_POSITION_SAVE%%BLINK_ON%%PRETTY_ANSWER%%BLINK_OFF%%ANSI_ERASE_TO_END_OF_LINE%%ANSI_POSITION_RESTORE%%@ANSI_MOVE_UP[1]%BIG_TOP%%BLINK_ON%%PRETTY_ANSWER%%BLINK_OFF%%ANSI_ERASE_TO_END_OF_LINE%%ANSI_POSITION_RESTORE%
         )

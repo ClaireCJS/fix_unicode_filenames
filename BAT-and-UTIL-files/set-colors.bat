@@ -35,9 +35,12 @@ rem ANSI: Initialization
                 set ANSIESCAPE=%ANSI_ESCAPE%
 
 rem ANSI: special stuff: reset
-            set ANSI_RESET=%ANSI_ESCAPE%0m
-                set ANSIRESET=%ANSI_RESET%
-                set ANSI_COLOR_RESET=%ANSI_RESET%
+            set ANSI_RESET_FG_COLOR=%ANSI_ESCAPE%0m
+            set ANSI_RESET=%ANSI_ESCAPE%39m%ANSI_ESCAPE%49m%ANSI_RESET_FG_COLOR%
+                set ANSI_RESET_FULL=%ANSI_RESET%
+                set ANSI_FULL_RESET=%ANSI_RESET%
+                set ANSI_COLOR_RESET=%ANSI_RESET_FG_COLOR%
+                set ANSI_RESET_COLOR=%ANSI_RESET_FG_COLOR%
 
 
 rem ANSI: special stuff: position save/restore
@@ -171,6 +174,19 @@ rem ANSI: colors
                  function    RANDFGBG_SOFT=`%@CHAR[27][38;2;%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]]m%@CHAR[27][48;2;%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]]m`
                  function    RANDBGFG_SOFT=`%@CHAR[27][38;2;%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]]m%@CHAR[27][48;2;%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]]m`
                  function    RANDBOTH_SOFT=`%@CHAR[27][38;2;%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]]m%@CHAR[27][48;2;%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]]m`
+
+             rem copy of the ones above but without underscores
+                 function        RANDBGSOFT=`%@CHAR[27][48;2;%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]]m`
+                 function        RANDBGSOFT=`%@CHAR[27][48;2;%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]]m`
+                 function    ANSIRANDBGSOFT=`%@CHAR[27][48;2;%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]]m`
+                 function        RANDFGSOFT=`%@CHAR[27][38;2;%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]]m`
+                 function        RANDFGSOFT=`%@CHAR[27][38;2;%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]]m`
+                 function    ANSIRANDFGSOFT=`%@CHAR[27][38;2;%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]]m`
+                 function ANSIRANDCOLORSOFT=`%@CHAR[27][38;2;%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]]m%@CHAR[27][48;2;%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]]m`
+                 function     RANDCOLORSOFT=`%@CHAR[27][38;2;%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]]m%@CHAR[27][48;2;%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]]m`
+                 function      RANDFGBGSOFT=`%@CHAR[27][38;2;%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]]m%@CHAR[27][48;2;%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]]m`
+                 function      RANDBGFGSOFT=`%@CHAR[27][38;2;%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]]m%@CHAR[27][48;2;%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]]m`
+                 function      RANDBOTHSOFT=`%@CHAR[27][38;2;%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]];%@RANDOM[%[MIN_RGB_VALUE_FG],%[MAX_RGB_VALUE_FG]]m%@CHAR[27][48;2;%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]];%@RANDOM[%[MIN_RGB_VALUE_BG],%[MAX_RGB_VALUE_BG]]m`
 
             rem example usage for random foreground: echos %@RANDFG[]
             rem example usage for random background: echos %@RANDBG[]
@@ -440,8 +456,7 @@ rem colors for GREP:
     REM adding blinking 20230802        
         set GREP_COLOR_NORMAL=mt=42;5;185          %+  set GREP_COLOR_HILITE=1;41;37              %+ set GREP_COLOR=%GREP_COLOR_NORMAL%  %+ REM this one is deprecated
         set GREP_COLORS_NORMAL=fn=1;33:ln=1;36;44  %+  set GREP_COLORS_HILITE=fn=1;34:ln=1;37;44  %+ set GREP_COLORS=%GREP_COLOR_NORMAL% %+ REM do NOT change set GREP_COLORS= to be GREP_COLORS_NORMAL with an S, those are the highlight colors actually
-        :SET LC-ALL=C
-        :^^^^^^^^^^^ LC-ALL=C actually gives an 86% speed grep increase [as of 2015ish on computer Thailog] at the expense of not being able to grep 2-byte-per-char type unicode files but in 20230504 it was decided unicode files are more common and our new computer is faster so this isn't worth it
+        rem SET LC-ALL=C  ——— setting LC-ALL=C actually gives an 86% speed grep increase [as of 2015ish on computer Thailog] at the expense of not being able to grep 2-byte-per-char type unicode files but in 20230504 it was decided unicode files are more common and our new computer is faster so this isn't worth it
 
 
 

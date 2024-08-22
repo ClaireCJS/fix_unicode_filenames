@@ -134,7 +134,8 @@ DEBUG_LANG_DETECT=False
 DEBUG_POLYGLOT=False
 DEBUG_CHAR                        = bool(False or DEBUG_ALL_CHARS or DEBUG_MOST_CHARS)
 DEBUG_UNIDECODECHAR               = bool(False or DEBUG_ALL_CHARS or DEBUG_MOST_CHARS)
-DEBUG_UNIDECODECHAR_TRANSLATECHAR = bool(False or DEBUG_ALL_CHARS)                      # super verbose
+DEBUG_UNIDECODECHAR_TRANSLATECHAR = bool(False
+or DEBUG_ALL_CHARS)                      # super verbose
 DEBUG_INTERNAL_TESTING=False
 #######################################################################################################
 
@@ -260,9 +261,9 @@ def translate_one_or_more_chars_with_custom_character_mapping(chars, mode):     
 
     code2 = ""                                      # unicode code without the \ before it
     for char in chars:                              # If it's not in our custom mapping, we basically pass through without doing anything
-        code, code2 = "", ""
+        code, code2, code3 = "", "", ""
         if DEBUG_UNIDECODECHAR_TRANSLATECHAR:
-            code  =     get_unicode_hex(char)
+            code  =               get_unicode_hex(char)
             code2 = "code " + str(get_unicode_hex(char)).replace("\\","")
             primt(f"\t{Fore.CYAN}translate_one_or_more_chars_with_custom_character_mapping(char={char},code={code},code2={code2})",end="")
 
@@ -271,7 +272,7 @@ def translate_one_or_more_chars_with_custom_character_mapping(chars, mode):     
             mapping = unicode_to_ascii_custom_character_mapping[char]
             if DEBUG_UNIDECODECHAR_TRANSLATECHAR: primt(f"{Fore.GREEN}    Found in mapping!",end="")
         else:
-            if DEBUG_UNIDECODECHAR_TRANSLATECHAR: primt(f"{Fore.RED}Not found in mapping!",end="")
+            if DEBUG_UNIDECODECHAR_TRANSLATECHAR: primt(  f"{Fore.RED}Not found in mapping!",end="")
             code2 = "code " + str(get_unicode_hex(char)).replace("\\","")
             if code2 in unicode_to_ascii_custom_character_mapping:
                 if DEBUG_UNIDECODECHAR_TRANSLATECHAR: primt(f"{Fore.GREEN}{Style.BRIGHT}Found by 2nd-attempt code lookup!{Style.NORMAL}",end="")
@@ -287,6 +288,7 @@ def translate_one_or_more_chars_with_custom_character_mapping(chars, mode):     
         else:                                   mapping_number_to_use = 0
         translated_chars.append(mapping[mapping_number_to_use])
         done = True                                                             # If any character is mapped, mark it as done
+        if DEBUG_UNIDECODECHAR_TRANSLATECHAR: primt("\n")
 
     return ''.join(translated_chars), done
 
@@ -460,17 +462,39 @@ def translate_emoji_to_ascii(char):
 
 
 def get_name_from_hex(unicode_hex):
-    unicode_hex = unicode_hex.replace('\\u', '')  # Remove the Unicode escape sequence part
-    unicode_hex = unicode_hex.replace('\\U', '')  # Remove the Unicode escape sequence part     #2024/05/23 situation
-    unicode_char = chr(int(unicode_hex, 16))  # Convert hex string to Unicode character
+    primt(f"\n\nRunning get_name_from_hex({unicode_hex})")
+    unicode_hex_original = unicode_hex
+
+    unicode_hex = unicode_hex.replace('\\u', '').replace('\\U', '')  # Remove the Unicode escape sequence part     #added capital-U version for 2024/05/23 situation
+
+    primt(f"unicode_hex is now {unicode_hex}")
+
+    unicode_char = chr(int(unicode_hex, 16))      # Convert hex string to Unicode character
     try:
         return unicodedata.name(unicode_char)
-    except ValueError:  # Raised when the character does not have a name
-        unicode_char = chr(int("000" + unicode_hex, 16))  # Convert hex string to Unicode character
+    except ValueError:                                              # Raised when the character does not have a name
+
+        unicode_char = chr(int("000" + unicode_hex, 16))            # Convert hex string to Unicode character
         try:
             return unicodedata.name(unicode_char)
-        except ValueError:  # Raised when the character does not have a name
-            return f"[ERROR: get_name_from_hex fail for hex={unicode_hex},char={unicode_char}]"
+        except ValueError:                                          # Raised when the character does not have a name
+
+            unicode_char = chr(int("00" + unicode_hex, 16))         # Convert hex string to Unicode character
+            try:
+                return unicodedata.name(unicode_char)
+            except ValueError:                                      # Raised when the character does not have a name
+
+                unicode_char = chr(int("0" + unicode_hex, 16))      # Convert hex string to Unicode character
+                try:
+                    return unicodedata.name(unicode_char)
+                except ValueError:                                  # Raised when the character does not have a name
+
+                    #unicode_char = {{{TRY OTHER THINGS HERE}}}     # Convert hex string to Unicode character
+                    try:
+                        return unicodedata.name(unicode_char)
+                    except ValueError:                              # Raised when the character does not have a name
+
+                        return f"            [ERROR: get_name_from_hex ___ fail_for_hex={unicode_hex_original},char={unicode_char}]               "
 
 
 
@@ -916,7 +940,7 @@ def create_script_to_define_emoji_characters_tried_without_gpt_got_5718():
 
 
 def create_script_to_define_emoji_characters_got_3106_much_better():
-    print("EMOJI_ENVIRONMENT_VARIABLES_CREATED_BY=fix_unicode_files.py script")
+    primt("EMOJI_ENVIRONMENT_VARIABLES_CREATED_BY=fix_unicode_files.py script")
     import ctypes
     from emoji.unicode_codes import EMOJI_DATA
     processed_emojis = set()  # Set to track processed emojis
@@ -957,13 +981,13 @@ def create_script_to_define_emoji_characters_got_3106_much_better():
 
     # Print the output strings
     for output_string in output_strings:
-        print(output_string)
+        primt(output_string)
 
 
 
 # thread about this: https://jpsoft.com/forums/threads/1431-emoji-environment-variables-for-your-echoing-convenience.11618/
 def create_script_to_define_emoji_characters(): #2860, 1431 unique
-    print("EMOJI_ENVIRONMENT_VARIABLES_CREATED_BY=fix_unicode_files.py script")
+    primt("EMOJI_ENVIRONMENT_VARIABLES_CREATED_BY=fix_unicode_files.py script")
     import ctypes
     from emoji.unicode_codes import EMOJI_DATA
     processed_emojis = set()  # Set to track processed emojis
@@ -1012,7 +1036,7 @@ def create_script_to_define_emoji_characters(): #2860, 1431 unique
     for output_string in output_strings:
         if output_string in printed: continue
         printed.add(output_string)
-        print(output_string)
+        primt(output_string)
 
 
 
@@ -1441,14 +1465,8 @@ unicode_to_ascii_custom_character_mapping = {
     'code u1f1fe': ["Y",],                          #workaround
     'code u008d' : ["{reverse line feed}",],        #workaround
 
-    '\U0001fabd' :["_"],            #2024/05/23 ran nto this not sure what it is
-    '\U0001fae7' :["_"],            #2024/05/23 ran nto this not sure what it is
-
-
-
     "'":          ["'"],                             #is this a unicode apostrophe?
     '\ue0067':    ["E","g"],
-    '\u1faf6':    ["{heart hands}",],
     '\u0081':     ["{control}",],
     '\u0090':     ["{device control}",],
     '\u008F':     ["3",],                                  #"single shift 3"
@@ -1456,6 +1474,8 @@ unicode_to_ascii_custom_character_mapping = {
     'code ud83d': ["{smiling face with open mouth}"],
     "\u1f409":    ["{dragon}",],
     "code u1f409":["{dragon}",],
+    "code 1fa77": ["{unicorn}",],
+    "code u1fa77": ["{unicorn}",],
     #"ðŸ¦‹":      ["{butterfly}",],             \
     #"ðŸ”—":      ["{chain link}",],             \
     #"ðŸ§¨":      ["{firecracker}",],             \
@@ -1469,12 +1489,142 @@ unicode_to_ascii_custom_character_mapping = {
     "／":         ["/","--"],                   #what strange new slash is this?
 
     "♬":      ["♫",],                          #unicode 'beamed music note' to ascii music note
+    "code u1fa01":      ["{Military Helmet}",],
+    "code u1fa02":      ["{Accordion}",],
+    "code u1fa03":      ["{Long Drum}",],
+    "code u1fa04":      ["{Coin}",],
+    "code u1fa05":      ["{Carpentry Saw}",],
+    "code u1fa06":      ["{Screwdriver}",],
+    "code u1fa07":      ["{Ladder}",],
+    "code u1fa08":      ["{Hook}",],
+    "code u1fa09":      ["{Mirror}",],
+    "code u1fa0a":      ["{Window}",],
+    "code u1fa0b":      ["{Plunger}",],
+    "code u1fa0c":      ["{Sewing Needle}",],
+    "code u1fa0d":      ["{Safety Pin}",],
+    "code u1fa0e":      ["{Broom}",],
+    "code u1fa0f":      ["{Bucket}",],
+    "code u1fa10":      ["{Toothbrush}",],
+    "code u1fa11":      ["{Hose}",],
+    "code u1fa12":      ["{Mouse Trap}",],
+    "code u1fa13":      ["{Skateboard}",],
+    "code u1fa14":      ["{Roller Skate}",],
+    "code u1fa15":      ["{Fishing Pole}",],
+    "code u1fa16":      ["{Yo-Yo}",],
+    "code u1fa17":      ["{Kite}",],
+    "code u1fa18":      ["{Parachute}",],
+    "code u1fa19":      ["{Boomerang}",],
+    "code u1fa1a":      ["{Magic Wand}",],
+    "code u1fa1b":      ["{Nazar Amulet}",],
+    "code u1fa1c":      ["{Hamsa}",],
+    "code u1fa1d":      ["{Red Envelope}",],
+    "code u1fa1e":      ["{Carp Streamer}",],
+    "code u1fa1f":      ["{Firecracker}",],
+    "code u1fab0":      ["{Fly}",],
+    "code u1fab1":      ["{Worm}",],
+    "code u1fab2":      ["{Beetle}",],
+    "code u1fab3":      ["{Cockroach}",],
+    "code u1fab4":      ["{Potted Plant}",],
+    "code u1fab5":      ["{Wood}",],
+    "code u1fab6":      ["{Feather}",],
+    "code u1fab7":      ["{Lotus}",],
+    "code u1fab8":      ["{Coral}",],
+    "code u1fab9":      ["{Empty Nest}",],
+    "code u1faba":      ["{Nest with Eggs}",],
+    "code u1fabb":      ["{Hyacinth}",],
+    "code u1fabc":      ["{Jellyfish}",],
+    "code u1fabd":      ["{Wing}",],
+    "code u1fabe":      ["{Plant in Ground}",],
+    "code u1fabf":      ["{Goose}",],
+    "code u1fac0":      ["{Anatomical Heart}",],
+    "code u1fac1":      ["{Lungs}",],
+    "code u1fac2":      ["{People Hugging}",],
+    "code u1fac3":      ["{Pregnant Man}",],
+    "code u1fac4":      ["{Pregnant Person}",],
+    "code u1fac5":      ["{Person with Crown}",],
+    "code u1fac6":      ["{Person in Lotus Position}",],
+    "code u1fac7":      ["{Hamsa}",],
+    "code u1fac8":      ["{Empty Bowl}",],
+    "code u1fac9":      ["{Nest with Eggs}",],
+    "code u1faca":      ["{Bowl with Spoon}",],
+    "code u1facb":      ["{Jar}",],
+    "code u1facc":      ["{Empty Jar}",],
+    "code u1facd":      ["{Meringue}",],
+    "code u1face":      ["{Moose}",],
+    "code u1facf":      ["{Donkey}",],
+    "code u1fad0":      ["{Blueberries}",],
+    "code u1fad1":      ["{Bell Pepper}",],
+    "code u1fad2":      ["{Olive}",],
+    "code u1fad3":      ["{Flatbread}",],
+    "code u1fad4":      ["{Tamale}",],
+    "code u1fad5":      ["{Fondue}",],
+    "code u1fad6":      ["{Teapot}",],
+    "code u1fad7":      ["{Pouring Liquid}",],
+    "code u1fad8":      ["{Beans}",],
+    "code u1fad9":      ["{Jar with a Lid}",],
+    "code u1fada":      ["{Ginger Root}",],
+    "code u1fadb":      ["{Pea Pod}",],
+    "code u1fadc":      ["{Empty Bowl}",],
+    "code u1fadd":      ["{Bowl with Spoon}",],
+    "code u1fade":      ["{Tamale}",],
+    "code u1fadf":      ["{Empty Plate}",],
+    "code u1fae0":      ["{Melting Face}",],
+    "code u1fae1":      ["{Saluting Face}",],
+    "code u1fae2":      ["{Face with Open Eyes and Hand Over Mouth}",],
+    "code u1fae3":      ["{Face with Peeking Eye}",],
+    "code u1fae4":      ["{Face with Diagonal Mouth}",],
+    "code u1fae5":      ["{Dotted Line Face}",],
+    "code u1fae6":      ["{Biting Lip}",],
+    "code u1fae7":      ["{Bubbles}",],
+    "code u1fae8":      ["{Shaking Face}",],
+    "code u1fae9":      ["{Pink Heart}",],
+    "code u1faea":      ["{Light Blue Heart}",],
+    "code u1faeb":      ["{Grey Heart}",],
+    "code u1faec":      ["{Hand with Palm Facing Up}",],
+    "code u1faed":      ["{Hand with Palm Facing Down}",],
+    "code u1faee":      ["{Index Pointing at the Viewer}",],
+    "code u1faef":      ["{Rightwards Hand}",],
+    "code u1faf0":      ["{Leftwards Hand}",],
+    "code u1faf1":      ["{Palm Down Hand}",],
+    "code u1faf2":      ["{Palm Up Hand}",],
+    "code u1faf3":      ["{Hand with Thumb and Index Finger Together}",],
+    "code u1faf4":      ["{Leftwards Palm with Thumb and Index Finger}",],
+    "code u1faf5":      ["{Palm with Index and Thumb Crossed}",],
+        "\u1faf6":      ["{Hands Holding Heart}",],
+    "code u1faf6":      ["{Hands Holding Heart}",],
+          "1faf6":      ["{Hands Holding Heart}",],
+    "code u1faf7":      ["{Rightwards Hand}",],
+    "code u1faf8":      ["{Leftwards Hand}",],
+    "code u1faf9":      ["{Index Pointing at the Viewer}",],
+    "code u1fafa":      ["{Rightwards Hand}",],
+    "code u1fafb":      ["{Leftwards Hand}",],
+    "code u1fafc":      ["{Palm Up Hand}",],
+    "code u1fafd":      ["{Palm Down Hand}",],
+    "code u1fafe":      ["{Palm with Thumb and Index Finger Together}",],
+    "code u1faff":      ["{Rightwards Palm with Thumb and Index Finger}",],
+
+    "code u1f3fb":      ["{Light Skin Tone}",],
+    "code u1f3fc":      ["{Medium-Light Skin Tone}",],
+    "code u1f3fd":      ["{Medium Skin Tone}",],
+    "code u1f3fe":      ["{Medium-Dark Skin Tone}",],
+    "code u1f3ff":      ["{Dark Skin Tone}",],
+    "code u1f3fa":      ["{Amphora}",],
+    "code u1f3f9":      ["{Bow and Arrow}",],
+    "code u1f3f8":      ["{Drum with Drumsticks}",],
+    "code u1f3f7":      ["{Label}",],
+
     #"":      ["",],
     #"":      ["",],
     #"":      ["",],
     #"":      ["",],
     #"":      ["",],
-    #"":      ["",],
+
+
+    '\U0001fabd' :["_"],            #2024/05/23 ran nto this not sure what it is
+    '\U0001fae7' :["_"],            #2024/05/23 ran nto this not sure what it is
+    '\U0001fae6' :["_"],            #2024/06/12 ran nto this not sure what it is
+    '\U0001fa75' :["_"],            #2024/06/12 ran nto this not sure what it is
+
 
 
 }
@@ -1483,7 +1633,7 @@ unicode_to_ascii_custom_character_mapping = {
 if __name__ == "__main__":
     #we do this only in main because otherwise it affects loading modules
     original_print = print                                      # Store the original print function before overriding
-    #goat builtins.print = print_error                               # Override the built-in print function with the custom one
+    builtins.print = print_error                               # Override the built-in print function with the custom one
     main()
 
 

@@ -37,45 +37,45 @@
 ::::: VALIDATE PARAMETERS STRICTLY
     rem call debug "param3            is %param3%"
     rem call debug "validate_multiple is %validate_multiple%"
-    rem call debug "about to check if PARAM3 [%param3%] ne '' .and. VALIDATE_MULTIPLE [%VALIDATE_MULTIPLE] ne 1 .... ALL_PARAMS is: %*"
+    rem call debug "about to check if PARAM3 [%param3%] ne '' .and. VALIDATE_MULTIPLE [%VALIDATE_MULTIPLE] ne 1 .... ALL_PARAMS is: %VEVPARAMS%"
     if "%PARAM3%" ne "" .and. %VALIDATE_MULTIPLE ne 1 (
-        call bigecho "%ANSI_COLOR_ALARM%*** ERROR! ***"
+        call bigecho "%ANSI_COLOR_ALARM%*** ENV VAR ERROR! ***"
         color bright white on red
         echo  We can't be passing a %italics%%blink%third%blink_off%%italics_off% parameter to validate-environment-variable.bat 
         echo  %underline%Did you mean%underline_off%: %italics%validate-environment-variable%double_underline%%blink%s%blink_off%%double_underline_off% %VEVPARAMS%%italics_off% 
         echo                                   (with an 's' after '%italics%variable%italics_off%')  ????
         call exit-maybe
         
-        set COMMENT=color white on black
-        set COMMENT=beep
-        set COMMENT=beep
-        set COMMENT=beep
-        set COMMENT=beep
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
-        set COMMENT=*pause
+        set VEV_COMMENT=color white on black
+        set VEV_COMMENT=beep
+        set VEV_COMMENT=beep
+        set VEV_COMMENT=beep
+        set VEV_COMMENT=beep
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
+        set VEV_COMMENT=*pause
 
         goto :END
     )
@@ -158,7 +158,7 @@ goto :Past_The_End_Of_The_Sub-Routines
                                 set ERROR_MESSAGE=%NORMALIZED_ERROR_MESSAGE%
                             :Do_It_1_Done
                             if %DEBUG_NORMALIZE_MESSAGE eq 1 (%COLOR_DEBUG% %+ echo ERROR_MESSAGE[2]: %ERROR_MESSAGE% [length_diff=%LENGTH_DIFF%] [errlen=%ERROR_LENGTH,userlen=%USER_LENGTH])
-                            call bigecho "%ANSI_COLOR_ALARM%*** ERROR! ***"
+                            call bigecho "%ANSI_COLOR_ALARM%*** ENV VAR ERROR! ***"
                             %COLOR_ALARM%       
                             echos %ERROR_MESSAGE% 
                             %COLOR_NORMAL% 
@@ -175,11 +175,11 @@ goto :Past_The_End_Of_The_Sub-Routines
                                 REM important than simply advice -- 
                                 REM      -- it represents a system failure!!!
                                 REM ...so let's put asterisks around it, too!
-                                call warning "*** %@UNQUOTE[%USER_MESSAGE%] ***"
+                                call warning "%@UNQUOTE[%USER_MESSAGE%]"
                             )
                                 
                             %COLOR_ALARM%  %+ echos %ERROR_MESSAGE% %+ %COLOR_NORMAL% %+ echo.
-                            call bigecho "%ANSI_COLOR_ALARM%*** ERROR! ***"
+                            call bigecho "%ANSI_COLOR_ALARM%*** ENV VAR ERROR! ***"
                             REM call alarm-beep     %+ REM was too annoying for the severity of the corresponding situations
                             call white-noise 1      %+ REM reduced to 2 seconds, then after a year or few, reduced to 1 second
                             REM %COLOR_PROMPT% %+ pause %+ %COLOR_NORMAL%
